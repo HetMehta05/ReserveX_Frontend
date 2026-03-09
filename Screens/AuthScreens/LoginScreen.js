@@ -1,0 +1,304 @@
+import React, { useState } from 'react';
+import {
+    StyleSheet,
+    View,
+    Text,
+    TextInput,
+    Image,
+    TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function LoginScreen() {
+    const [activeTab, setActiveTab] = useState('login');
+    const [form, setForm] = useState({
+        username: '',
+        password: '',
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleLogin = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const response = await fetch('http://YOUR_IP:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: form.username, // assuming this is email
+                    password: form.password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
+            }
+
+            console.log('Access Token:', data.accessToken);
+            await AsyncStorage.setItem('accessToken', data.accessToken);
+
+            alert('Login successful!');
+        } catch (err) {
+            console.log(err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    return (
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.container}>
+                    {/* Logo */}
+                    <Text style={styles.logo}>ReserveX</Text>
+
+                    {/* Image */}
+                    <Image
+                        source={require('../../assets/loginPage_img.png')}
+                        style={styles.image}
+                        resizeMode="contain"
+                    />
+
+                    {/* Glass Card */}
+                    <BlurView intensity={40} tint="dark" style={styles.glassCard}>
+
+                        {/* Toggle */}
+                        <View style={styles.toggleContainer}>
+
+                            {/* LOGIN TAB */}
+                            <TouchableOpacity
+                                style={styles.toggleWrapper}
+                                onPress={() => setActiveTab('login')}
+                                activeOpacity={0.8}
+                            >
+                                {activeTab === 'login' ? (
+                                    <LinearGradient
+                                        colors={['#C281FF', '#5623CD']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 0, y: 1 }}
+                                        style={styles.activeToggle}
+                                    >
+                                        <Text style={[styles.toggleText, { color: '#fff' }]}>
+                                            Login
+                                        </Text>
+                                    </LinearGradient>
+                                ) : (
+                                    <View style={styles.inactiveToggle}>
+                                        <Text style={[styles.toggleText, { color: '#000' }]}>
+                                            Login
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+
+                            {/* SIGNUP TAB */}
+                            <TouchableOpacity
+                                style={styles.toggleWrapper}
+                                onPress={() => setActiveTab('signup')}
+                                activeOpacity={0.8}
+                            >
+                                {activeTab === 'signup' ? (
+                                    <LinearGradient
+                                        colors={['#C281FF', '#5623CD']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 0, y: 1 }}
+                                        style={styles.activeToggle}
+                                    >
+                                        <Text style={[styles.toggleText, { color: '#fff' }]}>
+                                            Signup
+                                        </Text>
+                                    </LinearGradient>
+                                ) : (
+                                    <View style={styles.inactiveToggle}>
+                                        <Text style={[styles.toggleText, { color: '#000' }]}>
+                                            Signup
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Inputs */}
+                        <TextInput
+                            placeholder="Email"
+                            placeholderTextColor="rgba(255,255,255,0.6)"
+                            style={styles.input}
+                            value={form.username}
+                            onChangeText={(text) =>
+                                setForm({ ...form, username: text })
+                            }
+                        />
+
+                        <View style={styles.passwordContainer}>
+                            <TextInput
+                                placeholder="Password"
+                                value={form.password}
+                                placeholderTextColor="rgba(255,255,255,0.6)"
+                                secureTextEntry={!showPassword}
+                                style={styles.passwordInput}
+                                autoCorrect={false}
+                                keyboardType="default"
+                                onChangeText={(text) =>
+                                    setForm({ ...form, password: text })
+                                }
+                            />
+
+                            <TouchableOpacity
+                                onPress={() => setShowPassword(!showPassword)}
+                                style={styles.eyeIcon}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons
+                                    name={showPassword ? 'eye-off' : 'eye'}
+                                    size={20}
+                                    color="#ffffff"
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Login Button */}
+                        <TouchableOpacity
+                            style={{ marginTop: 25 }}
+                            activeOpacity={0.8}
+                            onPress={handleLogin}
+                            disabled={loading}>
+
+                            <LinearGradient
+                                colors={['#C281FF', '#5623CD']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 0, y: 1 }}
+                                style={styles.loginButton}
+                            >
+                                <Text style={styles.loginText}>Login</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </BlurView>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 25,
+        justifyContent: 'center',
+    },
+
+    logo: {
+        fontSize: 15,
+        fontFamily: 'Times New Roman',
+        marginBottom: 50,
+        color: '#fff',
+    },
+
+    image: {
+        width: 294,
+        height: 294,
+        marginBottom: 30,
+        alignSelf: 'center',
+    },
+
+    glassCard: {
+        borderRadius: 30,              // smoother corners
+        padding: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        overflow: 'hidden',            // 🔥 fixes sharp edge bleed
+    },
+
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#ffffff',
+        borderRadius: 30,              // fully rounded
+        marginBottom: 25,
+        padding: 3,
+    },
+
+    toggleWrapper: {
+        flex: 1,
+    },
+
+    activeToggle: {
+        paddingVertical: 10,
+        borderRadius: 25,
+        alignItems: 'center',
+    },
+
+    inactiveToggle: {
+        paddingVertical: 10,
+        borderRadius: 25,
+        alignItems: 'center',
+    },
+
+    toggleText: {
+        fontFamily: 'DMMono-Regular',
+        fontSize: 16
+    },
+
+    input: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#fff",
+        paddingVertical: 12,
+        color: '#fff',
+        marginBottom: 20,
+        fontFamily: 'DMMono-Regular',
+    },
+
+    loginButton: {
+        paddingVertical: 14,
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 150,
+        alignSelf: 'center',
+    },
+
+    loginText: {
+        color: '#fff',
+        fontFamily: 'DMMono-Regular',
+        fontSize: 16,
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#fff',
+        marginBottom: 20,
+    },
+
+    passwordInput: {
+        flex: 1,
+        paddingVertical: 12,
+        color: '#fff',
+        fontFamily: 'DMMono-Regular',
+    },
+
+    eyeIcon: {
+        paddingLeft: 10,
+    },
+});
