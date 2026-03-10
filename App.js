@@ -1,13 +1,26 @@
+import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import AppBackground from './component/AppBackground';
 import LoginScreen from './Screens/AuthScreens/LoginScreen';
+import LandingScreen from './Screens/LandingScreen';
+import SplashScreen from './Screens/SplashScreen';
 
 export default function App() {
+  const [currentScreen, setCurrentScreen] = useState('splash');
+
   return (
     <AppBackground>
       <StatusBar style="light" />
-      <LoginScreen />
+      {currentScreen === 'splash' && (
+        <SplashScreen onFinish={() => setCurrentScreen('landing')} />
+      )}
+      {currentScreen === 'landing' && (
+        <LandingScreen onNavigateToLogin={() => setCurrentScreen('login')} />
+      )}
+      {currentScreen === 'login' && (
+        <LoginScreen />
+      )}
     </AppBackground>
   );
 }
