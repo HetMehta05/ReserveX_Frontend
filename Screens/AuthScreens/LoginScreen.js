@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
     const [activeTab, setActiveTab] = useState('login');
@@ -28,15 +29,14 @@ export default function LoginScreen() {
     const handleLogin = async () => {
         try {
             setLoading(true);
-            setError('');
 
-            const response = await fetch('http://YOUR_IP:5000/api/auth/login', {
+            const response = await fetch('https://reserveX.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    email: form.username, // assuming this is email
+                    email: form.username,
                     password: form.password,
                 }),
             });
@@ -47,13 +47,20 @@ export default function LoginScreen() {
                 throw new Error(data.message || 'Login failed');
             }
 
-            console.log('Access Token:', data.accessToken);
             await AsyncStorage.setItem('accessToken', data.accessToken);
 
-            alert('Login successful!');
+            Toast.show({
+                type: 'success',
+                text1: 'Login Successful',
+                text2: 'Welcome back!',
+            });
+
         } catch (err) {
-            console.log(err);
-            setError(err.message);
+            Toast.show({
+                type: 'error',
+                text1: 'Login Failed',
+                text2: err.message,
+            });
         } finally {
             setLoading(false);
         }
@@ -177,6 +184,7 @@ export default function LoginScreen() {
                                 />
                             </TouchableOpacity>
                         </View>
+
 
                         {/* Login Button */}
                         <TouchableOpacity
