@@ -1,27 +1,58 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import Toast from 'react-native-toast-message';
 import AppBackground from './component/AppBackground';
-import LoginScreen from './Screens/AuthScreens/LoginScreen';
-import LandingScreen from './Screens/LandingScreen';
 import SplashScreen from './Screens/SplashScreen';
+import LandingScreen from './Screens/LandingScreen';
+import LoginScreen from './Screens/AuthScreens/LoginScreen';
+import TabNavigator from './Navigator/TabNavigator';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('splash');
 
+  const MyTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: 'transparent',
+    },
+  };
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'splash':
+        return (
+          <SplashScreen onFinish={() => setCurrentScreen('landing')} />
+        );
+
+      case 'landing':
+        return (
+          <LandingScreen onNavigateToLogin={() => setCurrentScreen('login')} />
+        );
+
+      case 'login':
+        return (
+          <LoginScreen onLoginSuccess={() => setCurrentScreen('main')} />
+        );
+
+      case 'main':
+        return <TabNavigator />;
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <AppBackground>
-      <StatusBar style="light" />
-      {currentScreen === 'splash' && (
-        <SplashScreen onFinish={() => setCurrentScreen('landing')} />
-      )}
-      {currentScreen === 'landing' && (
-        <LandingScreen onNavigateToLogin={() => setCurrentScreen('login')} />
-      )}
-      {currentScreen === 'login' && (
-        <LoginScreen />
-      )}
-    </AppBackground>
+    <NavigationContainer theme={MyTheme}>
+      <AppBackground>
+        <StatusBar style="light" />
+        {renderScreen()}
+        <Toast />
+      </AppBackground>
+    </NavigationContainer>
   );
 }
 
