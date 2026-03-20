@@ -23,7 +23,7 @@ export default function LandingScreen({ navigation }) {
                     <TouchableOpacity
                         style={styles.buttonWrapper}
                         activeOpacity={0.8}
-                        onPress={() => navigation.replace('Login')}
+                        onPress={() => navigation.replace('Login', { role: 'student' })}
                     >
                         <LinearGradient
                             colors={['#C281FF', '#5623CD']}
@@ -38,7 +38,7 @@ export default function LandingScreen({ navigation }) {
                     <TouchableOpacity
                         style={styles.buttonWrapper}
                         activeOpacity={0.8}
-                        onPress={() => navigation.replace('Login')}
+                        onPress={() => navigation.replace('Login', { role: 'committee' })}
                     >
                         <LinearGradient
                             colors={['#C281FF', '#5623CD']}

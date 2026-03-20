@@ -2,8 +2,19 @@ import React from 'react';
 import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CommitteeBackground from "../../layouts/AppBackgroundCommittee";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from "../../context/UserContext";
 
 export default function CommitteeHomeScreen() {
+    const { setToken, setRole } = useUser();
+
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('userRole');
+        setToken(null);
+        setRole(null);
+    };
+
     return (
         <CommitteeBackground>
             <View style={styles.container}>
@@ -14,7 +25,7 @@ export default function CommitteeHomeScreen() {
                         <TouchableOpacity style={styles.iconButton}>
                             <Ionicons name="notifications" size={24} color="#fff" />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
+                        <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
                             <Ionicons name="person" size={24} color="#fff" />
                         </TouchableOpacity>
                     </View>

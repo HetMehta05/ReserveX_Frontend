@@ -21,7 +21,7 @@ const Stack = createNativeStackNavigator();
 
 // 🔹 Separate navigator component (clean pattern)
 function AppNavigator() {
-  const { token, setToken, loading, setLoading } = useUser();
+  const { token, setToken, role, setRole, loading, setLoading } = useUser();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -30,6 +30,8 @@ function AppNavigator() {
 
         if (storedToken) {
           setToken(storedToken);
+          const storedRole = await AsyncStorage.getItem("userRole");
+          if (storedRole) setRole(storedRole);
         }
       } catch (err) {
         console.log("Auth check error:", err);
@@ -56,16 +58,15 @@ function AppNavigator() {
             <Stack.Screen name="Landing" component={LandingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
           </>
+        ) : role === 'committee' ? (
+          <>
+            <Stack.Screen name="CommitteeTabs" component={CommitteeTabNavigator} />
+          </>
         ) : (
           <>
             <Stack.Screen name="MainTabs" component={RootNavigator} />
           </>
         )}
-        {/* <Stack.Screen
-          name="CommitteeTabs"
-          component={CommitteeTabNavigator} // ✅ CORRECT
-          options={{ headerShown: false }}
-        /> */}
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -5,6 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/student/HomeScreen";
 import EventsScreen from "../screens/student/EventScreen";
+import RoomScreen from "../screens/student/RoomScreen";
+import TimeTableScreen from "../screens/student/TimeTableScreen";
 import AppBackground from "../layouts/AppBackgroundStudents";
 import ProfileScreen from "../screens/student/ProfileScreen";
 import NotificationScreen from "../screens/student/NotificationScreen";
@@ -57,8 +59,8 @@ export default function StudentNavigator() {
                 component={EventsScreen}
                 options={{ unmountOnBlur: true }} // free memory on leaving heavy screens
             />
-            <Tab.Screen name="Rooms" component={HomeScreen} />
-            <Tab.Screen name="Timetable" component={HomeScreen} />
+            <Tab.Screen name="Rooms" component={RoomScreen} />
+            <Tab.Screen name="Timetable" component={TimeTableScreen} />
         </Tab.Navigator>
 
     );

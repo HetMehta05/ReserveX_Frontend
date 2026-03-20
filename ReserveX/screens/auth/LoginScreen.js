@@ -18,9 +18,8 @@ import Toast from 'react-native-toast-message';
 import AppBackgroundStudent from "../../layouts/AppBackgroundStudents";
 import { useUser } from "../../context/UserContext";
 
-export default function LoginScreen() {
-    const { setUser, setToken } = useUser();
-    const { setUserId } = useUser();
+export default function LoginScreen({ route }) {
+    const { setUser, setToken, setRole, setUserId } = useUser();
     const [activeTab, setActiveTab] = useState('login');
     const [form, setForm] = useState({
         username: '',
@@ -70,6 +69,9 @@ export default function LoginScreen() {
             });
 
             // delay so toast is visible
+            const chosenRole = route.params?.role || 'student';
+            await AsyncStorage.setItem('userRole', chosenRole);
+            setRole(chosenRole);
             setUser(data.user);
             setToken(data.accessToken);
 
