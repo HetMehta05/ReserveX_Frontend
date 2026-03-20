@@ -8,6 +8,7 @@ import SplashScreen from './Screens/SplashScreen';
 import LandingScreen from './Screens/LandingScreen';
 import LoginScreen from './Screens/AuthScreens/LoginScreen';
 import TabNavigator from './Navigator/TabNavigator';
+import CommitteeTabNavigator from './Navigator/CommitteeTabNavigator';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('splash');
@@ -29,7 +30,15 @@ export default function App() {
 
       case 'landing':
         return (
-          <LandingScreen onNavigateToLogin={() => setCurrentScreen('login')} />
+          <LandingScreen
+            onNavigateToLogin={(role) => {
+              if (role === 'committee') {
+                setCurrentScreen('committeeMain');
+              } else {
+                setCurrentScreen('login');
+              }
+            }}
+          />
         );
 
       case 'login':
@@ -39,6 +48,9 @@ export default function App() {
 
       case 'main':
         return <TabNavigator />;
+
+      case 'committeeMain':
+        return <CommitteeTabNavigator />;
 
       default:
         return null;

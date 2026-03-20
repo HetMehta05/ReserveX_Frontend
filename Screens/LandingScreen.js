@@ -22,7 +22,7 @@ export default function LandingScreen({ onNavigateToLogin }) {
                 <TouchableOpacity
                     style={styles.buttonWrapper}
                     activeOpacity={0.8}
-                    onPress={onNavigateToLogin}
+                    onPress={() => onNavigateToLogin('student')}
                 >
                     <LinearGradient
                         colors={['#C281FF', '#5623CD']}
@@ -37,7 +37,7 @@ export default function LandingScreen({ onNavigateToLogin }) {
                 <TouchableOpacity
                     style={styles.buttonWrapper}
                     activeOpacity={0.8}
-                    onPress={onNavigateToLogin}
+                    onPress={() => onNavigateToLogin('committee')}
                 >
                     <LinearGradient
                         colors={['#C281FF', '#5623CD']}

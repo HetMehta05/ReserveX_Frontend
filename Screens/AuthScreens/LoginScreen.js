@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
-export default function LoginScreen() {
+export default function LoginScreen({ onLoginSuccess }) {
     const [activeTab, setActiveTab] = useState('login');
     const [form, setForm] = useState({
         username: '',
@@ -54,6 +54,10 @@ export default function LoginScreen() {
                 text1: 'Login Successful',
                 text2: 'Welcome back!',
             });
+
+            if (onLoginSuccess) {
+                onLoginSuccess();
+            }
 
         } catch (err) {
             Toast.show({
