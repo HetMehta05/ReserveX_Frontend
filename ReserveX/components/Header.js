@@ -9,6 +9,7 @@ export default function Header({ currentScreen }) {
     const isNotificationScreen = currentScreen === "Notifications";
     const isProfileScreen = currentScreen === "Profile";
 
+
     return (
         <View style={styles.header}>
             <Text style={styles.logo}>ReserveX</Text>

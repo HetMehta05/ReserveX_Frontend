@@ -10,15 +10,16 @@ export const UserProvider = ({ children }) => {
     const isAuthenticated = !!token;
 
     return (
-        <UserContext.Provider value={{
-            user,
-            setUser,
-            token,
-            setToken,
-            isAuthenticated,
-            loading,
-            setLoading
-        }}>
+        <UserContext.Provider
+            value={{
+                token,
+                setToken,
+                user,
+                setUser,
+                loading,
+                setLoading,
+            }}
+        >
             {children}
         </UserContext.Provider>
     );
