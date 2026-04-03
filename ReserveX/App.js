@@ -84,6 +84,7 @@ export default function App() {
       <NavigationContainer>
         <CommitteeStack />
       </NavigationContainer>
+      {/* <AppNavigator /> */}
       <Toast />
     </UserProvider>
   );

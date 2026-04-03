@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const UserContext = createContext();
 
@@ -9,6 +10,25 @@ export const UserProvider = ({ children }) => {
 
     const isAuthenticated = !!token;
 
+    // ✅ Restore token on app start
+    useEffect(() => {
+        const restoreSession = async () => {
+            try {
+                const savedToken = await AsyncStorage.getItem("accessToken");
+
+                if (savedToken) {
+                    setToken(savedToken);
+                }
+            } catch (e) {
+                console.log("Error restoring token", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        restoreSession();
+    }, []);
+
     return (
         <UserContext.Provider
             value={{
@@ -18,6 +38,7 @@ export const UserProvider = ({ children }) => {
                 setUser,
                 loading,
                 setLoading,
+                isAuthenticated, // ✅ useful
             }}
         >
             {children}
