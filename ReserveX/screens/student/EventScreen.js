@@ -5,6 +5,7 @@ import {
     StyleSheet,
     Dimensions,
     ActivityIndicator,
+    ScrollView
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -136,34 +137,39 @@ export default function EventsScreen() {
 
     return (
         <AppBackgroundStudents>
-            <View style={styles.container}>
-                <View style={{ paddingTop: 40 }} />
-                {/* Header */}
-                <Header />
+            <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.container}>
+                    <View style={{ paddingTop: 40 }} />
+                    {/* Header */}
+                    <Header />
 
-                {/* Centered Carousel */}
-                <View style={styles.carouselContainer}>
-                    <AnimatedFlatList
-                        data={events}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        keyExtractor={(item) => item.id.toString()}
-                        snapToInterval={CARD_WIDTH + SPACING}
-                        decelerationRate="fast"
-                        bounces={false}
-                        contentContainerStyle={{
-                            paddingHorizontal: SIDE_SPACE,
-                            alignItems: "center",
-                        }}
-                        onScroll={scrollHandler}
-                        scrollEventThrottle={16}
-                        renderItem={({ item, index }) => (
-                            <EventCard item={item} index={index} scrollX={scrollX} />
-                        )}
-                        ItemSeparatorComponent={() => <View style={{ width: SPACING }} />}
-                    />
+                    {/* Centered Carousel */}
+                    <View style={styles.carouselContainer}>
+                        <AnimatedFlatList
+                            data={events}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={(item) => item.id.toString()}
+                            snapToInterval={CARD_WIDTH + SPACING}
+                            decelerationRate="fast"
+                            bounces={false}
+                            contentContainerStyle={{
+                                paddingHorizontal: SIDE_SPACE,
+                                alignItems: "center",
+                            }}
+                            onScroll={scrollHandler}
+                            scrollEventThrottle={16}
+                            renderItem={({ item, index }) => (
+                                <EventCard item={item} index={index} scrollX={scrollX} />
+                            )}
+                            ItemSeparatorComponent={() => <View style={{ width: SPACING }} />}
+                        />
+                    </View>
                 </View>
-            </View>
+            </ScrollView>
         </AppBackgroundStudents>
     );
 }
@@ -178,6 +184,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         justifyContent: "center",
+        marginTop: 120,
     },
 
     card: {

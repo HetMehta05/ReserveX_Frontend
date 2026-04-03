@@ -1,14 +1,17 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { View, StyleSheet } from "react-native";
+
 import CommitteeHomeScreen from "../screens/committee/CommitteeHome";
 import CommitteeNewsScreen from "../screens/committee/CommitteeNews";
-import EventsScreen from "../screens/student/EventScreen";
+import CommitteeEventsScreen from "../screens/committee/Committee_Events/committee_events";
+import CreateEventScreen from "../screens/committee/Committee_Events/CommitteeCreateEvent";
 
 const Tab = createBottomTabNavigator();
 
-export default function CommitteeTabNavigator() {
+export function CommitteeTabNavigator() {
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -40,9 +43,24 @@ export default function CommitteeTabNavigator() {
             })}
         >
             <Tab.Screen name="Dash" component={CommitteeHomeScreen} />
-            <Tab.Screen name="Events" component={EventsScreen} />
+            <Tab.Screen name="Events" component={CommitteeEventsScreen} />
             <Tab.Screen name="News" component={CommitteeNewsScreen} />
         </Tab.Navigator>
+    );
+}
+
+const Stack = createNativeStackNavigator();
+export default function CommitteeStackNavigator() {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+
+            {/* Tabs (main app) */}
+            <Stack.Screen name="MainTabs" component={CommitteeTabNavigator} />
+
+            {/* Hidden screen (NOT in tab bar) */}
+            <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+
+        </Stack.Navigator>
     );
 }
 

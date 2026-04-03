@@ -17,9 +17,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import AppBackgroundStudent from "../../layouts/AppBackgroundStudents";
 import { useUser } from "../../context/UserContext";
+import { useNavigation } from '@react-navigation/native';
 
-export default function LoginScreen({ route }) {
-    const { setUser, setToken, setRole, setUserId } = useUser();
+export default function LoginScreen() {
+    const navigation = useNavigation();
+    const { setUser, setToken } = useUser();
+    const { setUserId } = useUser();
     const [activeTab, setActiveTab] = useState('login');
     const [form, setForm] = useState({
         username: '',
@@ -69,10 +72,11 @@ export default function LoginScreen({ route }) {
             });
 
             // delay so toast is visible
-            const chosenRole = route.params?.role || 'student';
-            await AsyncStorage.setItem('userRole', chosenRole);
-            setRole(chosenRole);
-            setUser(data.user);
+            setUser({
+                ...data.user,
+                role: "student"
+            });
+
             setToken(data.accessToken);
 
         } catch (err) {
@@ -88,18 +92,20 @@ export default function LoginScreen({ route }) {
 
 
     return (
+
         <KeyboardAvoidingView
             style={{ flex: 1, backgroundColor: '#000' }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
         >
-            <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                keyboardDismissMode="on-drag"
-            >
-                <AppBackgroundStudent>
+            <AppBackgroundStudent>
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    keyboardDismissMode="on-drag"
+                >
+
                     <View style={styles.container}>
                         {/* Logo */}
                         <Text style={styles.logo}>ReserveX</Text>
@@ -146,10 +152,10 @@ export default function LoginScreen({ route }) {
                                 {/* SIGNUP TAB */}
                                 <TouchableOpacity
                                     style={styles.toggleWrapper}
-                                    onPress={() => setActiveTab('signup')}
+                                    onPress={() => navigation.replace('Signup_Student')}
                                     activeOpacity={0.8}
                                 >
-                                    {activeTab === 'signup' ? (
+                                    {activeTab === 'Signup_Student' ? (
                                         <LinearGradient
                                             colors={['#C281FF', '#5623CD']}
                                             start={{ x: 0, y: 0 }}
@@ -229,9 +235,10 @@ export default function LoginScreen({ route }) {
                             </TouchableOpacity>
                         </BlurView>
                     </View>
-                </AppBackgroundStudent>
-            </ScrollView>
+                </ScrollView>
+            </AppBackgroundStudent>
         </KeyboardAvoidingView>
+
     );
 }
 
@@ -239,7 +246,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 25,
-        justifyContent: 'center',
+        marginTop: 50,
     },
 
     logo: {

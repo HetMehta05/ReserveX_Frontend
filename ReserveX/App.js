@@ -7,21 +7,26 @@ import Toast from "react-native-toast-message";
 // Screens
 import SplashScreen from "./screens/common/SplashScreen";
 import LandingScreen from "./screens/common/LandingScreen";
-import LoginScreen from "./screens/auth/LoginScreen";
+import LoginScreenStudent from "./screens/auth/StudentLogin";
+import LoginScreenCommittee from "./screens/auth/CommitteeLogin";
+import StudentSignupScreen from "./screens/auth/signup";
+import SignupScreen from "./screens/auth/signup";
 
 // Navigator
 import RootNavigator from "./navigation/RootNavigator";
-
+import CommitteeTabNavigator from "./navigation/CommitteeNavigator";
+import CommitteeStack from "./navigation/CommitteeNavigator";
 // Context
 import { UserProvider, useUser } from "./context/UserContext";
-import CommitteeTabNavigator from "./navigation/CommitteeNavigator";
+
+
 
 const Stack = createNativeStackNavigator();
 
 
 // 🔹 Separate navigator component (clean pattern)
 function AppNavigator() {
-  const { token, setToken, role, setRole, loading, setLoading } = useUser();
+  const { token, user, loading, setLoading, setToken } = useUser();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -30,13 +35,10 @@ function AppNavigator() {
 
         if (storedToken) {
           setToken(storedToken);
-          const storedRole = await AsyncStorage.getItem("userRole");
-          if (storedRole) setRole(storedRole);
         }
       } catch (err) {
         console.log("Auth check error:", err);
       } finally {
-        // splash delay (optional)
         setTimeout(() => setLoading(false), 1000);
       }
     };
@@ -44,10 +46,7 @@ function AppNavigator() {
     checkAuth();
   }, []);
 
-
-  if (loading) {
-    return <SplashScreen />;
-  }
+  if (loading) return <SplashScreen />;
 
   return (
     <NavigationContainer>
@@ -56,16 +55,20 @@ function AppNavigator() {
         {!token ? (
           <>
             <Stack.Screen name="Landing" component={LandingScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Login_Student" component={LoginScreenStudent} />
+            <Stack.Screen name="Signup_Student" component={SignupScreen} />
+            <Stack.Screen name="Login_Committee" component={LoginScreenCommittee} />
           </>
-        ) : role === 'committee' ? (
-          <>
-            <Stack.Screen name="CommitteeTabs" component={CommitteeTabNavigator} />
-          </>
+        ) : user?.role === "committee" ? (
+          <Stack.Screen
+            name="Committee_Main"
+            component={CommitteeTabNavigator}
+          />
         ) : (
-          <>
-            <Stack.Screen name="MainTabs" component={RootNavigator} />
-          </>
+          <Stack.Screen
+            name="Student_Main"
+            component={RootNavigator}
+          />
         )}
 
       </Stack.Navigator>
@@ -78,7 +81,9 @@ function AppNavigator() {
 export default function App() {
   return (
     <UserProvider>
-      <AppNavigator />
+      <NavigationContainer>
+        <CommitteeStack />
+      </NavigationContainer>
       <Toast />
     </UserProvider>
   );
