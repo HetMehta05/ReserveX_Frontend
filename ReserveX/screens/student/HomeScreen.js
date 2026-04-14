@@ -4,32 +4,65 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { getAvailableRooms, getRoomStatus } from "../../services/api";
+import { useUser } from "../../context/UserContext";
 import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
 import Header from "../../components/Header";
 
 
 export default function HomeScreen() {
+    const { token, loading } = useUser();
 
     const [availableRooms, setAvailableRooms] = useState([]);
     const [currentLecture, setCurrentLecture] = useState(null);
 
+    const getCurrentDateTime = () => {
+        const now = new Date();
+
+        const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
+
+        const pad = (n) => n.toString().padStart(2, "0");
+
+        const startTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+        // +2 hours window
+        const end = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+        const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+
+        return { date, startTime, endTime };
+    };
+
     useEffect(() => {
-        loadData();
-    }, []);
+        // Only load data if token is ready
+        if (!loading && token) {
+            loadData();
+
+            // Set interval to refresh every 2 hours
+            const interval = setInterval(() => {
+                loadData();
+            }, 2 * 60 * 60 * 1000); // 2 hours
+
+            return () => clearInterval(interval);
+        }
+    }, [token, loading]);
 
     const loadData = async () => {
         try {
+            const { date, startTime, endTime } = getCurrentDateTime();
 
-            const rooms = await getAvailableRooms();
-            setAvailableRooms(rooms);
+            const response = await fetch(
+                `https://reservex.onrender.com/api/rooms/available?date=${date}&startTime=${startTime}&endTime=${endTime}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // ✅ key fix
+                    },
+                }
+            );
 
-            const status = await getRoomStatus();
+            const data = await response.json();
 
-            // Example logic for current lecture
-            if (status.length > 0 && status[0].bookings.length > 0) {
-                setCurrentLecture(status[0].name);
-            }
+            if (!response.ok) throw new Error(data.message);
 
+            setAvailableRooms(data.availableRooms || []);
         } catch (err) {
             console.log("API Error:", err);
         }

@@ -8,6 +8,7 @@ import CommitteeHomeScreen from "../screens/committee/CommitteeHome";
 import CommitteeNewsScreen from "../screens/committee/CommitteeNews";
 import CommitteeEventsScreen from "../screens/committee/Committee_Events/committee_events";
 import CreateEventScreen from "../screens/committee/Committee_Events/CommitteeCreateEvent";
+import NotificationScreen from "../screens/student/NotificationScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -59,6 +60,7 @@ export default function CommitteeStackNavigator() {
 
             {/* Hidden screen (NOT in tab bar) */}
             <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+            <Stack.Screen name="CommitteeNotification" component={NotificationScreen} />
 
         </Stack.Navigator>
     );

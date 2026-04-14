@@ -5,16 +5,26 @@ import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
 import Header from "../../components/Header";
 
 export default function RoomScreen() {
+
     const [selectedFilter, setSelectedFilter] = useState("Any Occupancy");
 
     const filters = ["Mechanical", "Laboratory", "Any Occupancy"];
 
+    // ✅ Dummy Data (Improved)
     const rooms = [
-        { id: 1, status: "open" },
-        { id: 2, status: "open" },
-        { id: 3, status: "occupied" },
-        { id: 4, status: "open" },
+        { id: 1, name: "A101", type: "Mechanical", status: "open" },
+        { id: 2, name: "B202", type: "Laboratory", status: "open" },
+        { id: 3, name: "C303", type: "Mechanical", status: "occupied" },
+        { id: 4, name: "D404", type: "Laboratory", status: "open" },
+        { id: 5, name: "E505", type: "Mechanical", status: "occupied" },
+        { id: 6, name: "F606", type: "Laboratory", status: "open" },
     ];
+
+    // ✅ Filtering Logic
+    const filteredRooms =
+        selectedFilter === "Any Occupancy"
+            ? rooms
+            : rooms.filter((room) => room.type === selectedFilter);
 
     return (
         <AppBackgroundStudents>
@@ -25,9 +35,13 @@ export default function RoomScreen() {
             >
                 <Header currentScreen="Rooms" />
 
-                {/* Filter section */}
+                {/* FILTERS */}
                 <View style={styles.filterContainer}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.filterScroll}
+                    >
                         {filters.map((filter, index) => (
                             <TouchableOpacity
                                 key={index}
@@ -48,14 +62,30 @@ export default function RoomScreen() {
                     </ScrollView>
                 </View>
 
-                {/* Rooms List */}
+                {/* ROOMS LIST */}
                 <View style={styles.roomsList}>
-                    {rooms.map((room) => (
+                    {filteredRooms.map((room) => (
                         <View key={room.id} style={styles.roomCard}>
+
+                            {/* Room Info */}
+                            <View style={styles.roomInfo}>
+                                <Text style={styles.roomName}>{room.name}</Text>
+                                <Text style={styles.roomType}>{room.type}</Text>
+                            </View>
+
+                            {/* Status Dot */}
                             <View style={[
                                 styles.statusDot,
-                                room.status === "open" ? styles.statusOpen : styles.statusOccupied
+                                room.status === "open"
+                                    ? styles.statusOpen
+                                    : styles.statusOccupied
                             ]} />
+
+                            {/* Status Text */}
+                            <Text style={styles.statusText}>
+                                {room.status === "open" ? "Available" : "Occupied"}
+                            </Text>
+
                         </View>
                     ))}
                 </View>
@@ -65,7 +95,8 @@ export default function RoomScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 22, backgroundColor: "transparent" },
+    container: { flex: 1, paddingHorizontal: 7, backgroundColor: "transparent" },
+
     filterContainer: {
         backgroundColor: "rgba(255,255,255,0.05)",
         borderRadius: 20,
@@ -74,46 +105,68 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.1)',
         marginBottom: 30,
     },
+
     filterScroll: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-        paddingHorizontal: 2
+        alignItems: "center"
     },
+
     filterPill: {
-        paddingVertical: 12,
-        paddingHorizontal: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
         borderRadius: 15,
-        backgroundColor: "rgba(255,255,255,0.8)",
-        marginHorizontal: 3,
-        flex: 1,
-        alignItems: 'center'
+        backgroundColor: "rgba(255,255,255,0.2)",
+        marginRight: 10,
     },
+
     filterPillSelected: {
-        backgroundColor: "rgba(255,255,255,0.95)",
+        backgroundColor: "#fff",
     },
+
     filterText: {
-        color: "#000",
-        fontSize: 10,
+        color: "#fff",
+        fontSize: 12,
         fontWeight: "600",
-        fontFamily: "monospace" // to match the images
     },
+
     filterTextSelected: {
         color: "#000",
     },
+
     roomsList: {
         flexDirection: "column",
-        gap: 20,
     },
+
     roomCard: {
         height: 140,
         borderRadius: 25,
         backgroundColor: "rgba(0,0,0,0.4)",
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.15)',
-        position: 'relative',
         marginBottom: 20,
+        padding: 20,
+        justifyContent: "space-between"
     },
+
+    roomInfo: {},
+
+    roomName: {
+        color: "#fff",
+        fontSize: 20,
+        fontWeight: "700"
+    },
+
+    roomType: {
+        color: "#aaa",
+        fontSize: 14,
+        marginTop: 4
+    },
+
+    statusText: {
+        color: "#ccc",
+        fontSize: 12
+    },
+
     statusDot: {
         width: 12,
         height: 12,
@@ -126,10 +179,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 1,
         shadowRadius: 10,
     },
+
     statusOpen: {
         backgroundColor: '#39ff14',
         shadowColor: '#39ff14',
     },
+
     statusOccupied: {
         backgroundColor: '#ff3333',
         shadowColor: '#ff3333',
