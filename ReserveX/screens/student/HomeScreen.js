@@ -10,7 +10,8 @@ import Header from "../../components/Header";
 
 
 export default function HomeScreen() {
-    const { token, loading } = useUser();
+    const { user, loading } = useUser();
+    const token = user?.token;
 
     const [availableRooms, setAvailableRooms] = useState([]);
     const [currentLecture, setCurrentLecture] = useState(null);
@@ -117,7 +118,11 @@ export default function HomeScreen() {
                                     colors={['#C281FF', '#5623CD']}
                                     style={styles.roomPillGradient}
                                 >
-                                    <Text style={styles.roomPillText}>{room.name}</Text>
+                                    <Text style={styles.roomPillText}
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail">
+                                        {room.name}
+                                    </Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         ))
@@ -170,10 +175,22 @@ const styles = StyleSheet.create({
         marginBottom: 35,
     },
     roomText: { color: "#fff", fontSize: 14 },
-    roomGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
-    roomPillContainer: { width: "23%", marginBottom: 15 },
-    roomPillGradient: { borderRadius: 12, alignItems: "center", paddingVertical: 8 },
-    roomPillText: { color: "#fff", fontSize: 14, fontWeight: '600' },
+    roomGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start" },
+    roomPillContainer: {
+        marginRight: 10,
+        marginBottom: 12,
+        flexGrow: 1,
+        minWidth: "28%", // 🔥 controls how many fit per row (~3–4)
+        maxWidth: "48%",
+    },
+    roomPillGradient: {
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    roomPillText: { color: "#fff", fontSize: 14, fontWeight: '600', textAlign: "center", },
     highlightCard: {
         height: 200,
         borderRadius: 25,
@@ -192,6 +209,7 @@ const styles = StyleSheet.create({
         width: "100%",
         alignItems: "center",
         justifyContent: "center",
+        marginTop: 10,
         paddingVertical: 20,
         opacity: 0.6
     },

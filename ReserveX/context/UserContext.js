@@ -4,23 +4,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
+    const [user, setUser] = useState(null); // ✅ store id, email, role, token here
     const [loading, setLoading] = useState(true);
 
-    const isAuthenticated = !!token;
+    const isAuthenticated = !!user?.token;
 
-    // ✅ Restore token on app start
+    // ✅ Restore session on app start
     useEffect(() => {
         const restoreSession = async () => {
             try {
                 const savedToken = await AsyncStorage.getItem("accessToken");
+                const savedUser = await AsyncStorage.getItem("userData"); // optional persistent user
 
-                if (savedToken) {
-                    setToken(savedToken);
+                if (savedToken && savedUser) {
+                    setUser(JSON.parse(savedUser));
                 }
             } catch (e) {
-                console.log("Error restoring token", e);
+                console.log("Error restoring user session", e);
             } finally {
                 setLoading(false);
             }
@@ -29,16 +29,25 @@ export const UserProvider = ({ children }) => {
         restoreSession();
     }, []);
 
+    // ✅ Save token + user persistently when user logs in
+    const saveUserSession = async (userData) => {
+        try {
+            setUser(userData);
+            await AsyncStorage.setItem("accessToken", userData.token);
+            await AsyncStorage.setItem("userData", JSON.stringify(userData));
+        } catch (e) {
+            console.log("Error saving user session", e);
+        }
+    };
+
     return (
         <UserContext.Provider
             value={{
-                token,
-                setToken,
-                user,
-                setUser,
+                user,                 // ✅ includes user.id, email, role, token
+                setUser: saveUserSession, // ✅ always use this to save persistently
                 loading,
                 setLoading,
-                isAuthenticated, // ✅ useful
+                isAuthenticated,
             }}
         >
             {children}

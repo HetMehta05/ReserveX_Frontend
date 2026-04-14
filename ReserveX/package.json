@@ -21,6 +21,7 @@
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",
     "react-native": "0.83.2",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-pager-view": "8.0.0",
     "react-native-reanimated": "4.2.1",
@@ -30,6 +31,7 @@
   },
   "private": true,
   "devDependencies": {
-    "@react-native-community/cli": "^20.1.2"
+    "@react-native-community/cli": "^20.1.2",
+    "react-native-svg-transformer": "^1.5.3"
   }
 }
