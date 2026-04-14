@@ -5,149 +5,231 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
+    ActivityIndicator,
+    ScrollView,
 } from "react-native";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { Feather, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { getStudentProfile } from "../../services/api";
-import { useUser } from "../../context/UserContext";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
 import Header from "../../components/Header";
+import { useUser } from "../../context/UserContext";
+import { getStudentProfile, deleteUserAccount } from "../../services/api";
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
     const { user, setUser, token, setToken } = useUser();
     const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user) {
-            fetchProfile();
-        }
+        fetchProfile();
     }, [user]);
 
     const fetchProfile = async () => {
         try {
-            const data = await getStudentProfile(user);
+            setLoading(true);
+            const userId = user?._id || user?.id || user;
+            if (!userId) {
+                setLoading(false);
+                return;
+            }
+            const data = await getStudentProfile(userId);
             setProfile(data);
         } catch (err) {
-            console.log(err);
+            console.log("Profile fetch error:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleLogout = async () => {
-        try {
-            await AsyncStorage.removeItem("accessToken");
-            setUser(null);    // clear user context
-            setToken(null);   // clear token context
-
-
-        } catch (err) {
-            console.log("Logout failed:", err);
-            Alert.alert("Logout Failed", "Please try again");
-        }
+        Alert.alert(
+            "Logout",
+            "Are you sure you want to logout?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Logout",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.removeItem("accessToken");
+                            setUser(null);
+                            setToken(null);
+                        } catch (err) {
+                            console.log("Logout failed:", err);
+                            Alert.alert("Logout Failed", "Please try again");
+                        }
+                    },
+                },
+            ]
+        );
     };
 
-    // const handleDeleteAccount = async () => {
-    //     Alert.alert(
-    //         "Delete Account",
-    //         "Are you sure you want to delete your account? This action cannot be undone.",
-    //         [
-    //             { text: "Cancel", style: "cancel" },
-    //             {
-    //                 text: "Delete",
-    //                 style: "destructive",
-    //                 onPress: async () => {
-    //                     try {
-    //                         const token = await AsyncStorage.getItem("accessToken");
-    //                         if (!token) throw new Error("User not logged in");
+    const handleDeleteAccount = async () => {
+        Alert.alert(
+            "Delete Account",
+            "Are you sure you want to delete your account? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const userId = user?._id || user?.id || user;
+                            await deleteUserAccount(userId);
+                            await AsyncStorage.removeItem("accessToken");
+                            setUser(null);
+                            setToken(null);
+                        } catch (err) {
+                            console.log("Delete account failed:", err);
+                            Alert.alert("Delete Failed", err.message || "Please try again");
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
-    //                         const response = await fetch(`https://reservex.onrender.com/api/users/${userId}`, {
-    //                             method: "DELETE",
-    //                             headers: {
-    //                                 Authorization: `Bearer ${token}`,
-    //                                 "Content-Type": "application/json",
-    //                             },
-    //                         });
+    // Extract profile fields with fallbacks
+    const studentData = profile?.student || profile?.user || profile || {};
+    const userName = studentData.name || user?.name || "Student";
+    const department = studentData.department?.name || studentData.departmentName || studentData.department || "—";
+    const className = studentData.class?.name || studentData.className || studentData.class || "—";
+    const rollNo = studentData.rollNo || studentData.rollNumber || "—";
+    const sapId = studentData.sapId || studentData.sapID || studentData.sap || "—";
+    const cgpa = studentData.cgpa || studentData.CGPA || null;
+    const semester = studentData.semester?.number || studentData.semesterNumber || studentData.semester || null;
+    const attendance = studentData.attendance || studentData.attendanceRate || null;
+    const attendanceChange = studentData.attendanceChange || null;
 
-    //                         if (!response.ok) {
-    //                             const data = await response.json();
-    //                             throw new Error(data.message || "Failed to delete account");
-    //                         }
-
-    //                         // Clear local storage and context
-    //                         await AsyncStorage.removeItem("accessToken");
-    //                         setUserId(null);
-
-    //                         // Redirect to landing
-    //                         navigation.replace("Landing");
-
-    //                     } catch (err) {
-    //                         console.log("Delete account failed:", err);
-    //                         Alert.alert("Delete Failed", err.message);
-    //                     }
-    //                 }
-    //             }
-    //         ]
-    //     );
-    // };
-
-    console.log("Username: ", profile?.user?.name);
     return (
-        <AppBackgroundStudents >
-            <View style={styles.container}>
+        <AppBackgroundStudents>
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={{ paddingBottom: 120, paddingTop: 40 }}
+                showsVerticalScrollIndicator={false}
+            >
+                <Header currentScreen="Profile" />
 
-                {/* Top Right Icons */}
-                <Header currentScreen={"Profile"} />
-
-                {/* Profile Section */}
-                <View style={styles.profileRow}>
-                    <View style={styles.avatar} />
-
-                    <View>
-                        <Text style={styles.name}>
-                            {profile?.user?.name || "Het Mehta"}
-                        </Text>
-
-                        <Text style={styles.role}>
-                            {profile?.role || "Student"}
-                        </Text>
+                {loading ? (
+                    <View style={styles.loadingBox}>
+                        <ActivityIndicator size="large" color="#C281FF" />
+                        <Text style={styles.loadingText}>Loading profile...</Text>
                     </View>
-                </View>
+                ) : (
+                    <>
+                        {/* ═══ Avatar ═══ */}
+                        <View style={styles.avatarSection}>
+                            <View style={styles.avatarRing}>
+                                <LinearGradient
+                                    colors={["#00D4AA", "#C281FF", "#5623CD"]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={styles.avatarGradientRing}
+                                >
+                                    <View style={styles.avatarInner}>
+                                        <Ionicons name="person" size={50} color="rgba(255,255,255,0.3)" />
+                                    </View>
+                                </LinearGradient>
+                            </View>
 
-                {/* Details */}
-                <Text style={styles.sectionTitle}>Details</Text>
+                            <Text style={styles.userName}>{userName}</Text>
+                        </View>
 
-                <View style={styles.detailsCard}>
-                    <DetailRow label="Branch" value={profile?.branch || "Comps"} />
-                    <DetailRow label="Class" value={profile?.class || "C3"} />
-                    <DetailRow label="Roll no." value={profile?.rollNo || "C139"} />
-                    <DetailRow label="SAP ID" value={profile?.sapId || "60004240068"} />
-                </View>
+                        {/* ═══ Info Badges ═══ */}
+                        <View style={styles.badgeSection}>
+                            <View style={styles.badgeFull}>
+                                <Text style={styles.badgeText}>DEPARTMENT : {department.toUpperCase()}</Text>
+                            </View>
 
-                {/* Bottom Buttons */}
-                <View style={styles.bottomSection}>
-                    <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
-                        <Feather name="log-out" size={18} color="#ff4d4d" />
-                        <Text style={styles.actionText}>Logout</Text>
-                    </TouchableOpacity>
+                            <View style={styles.badgeRow}>
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>CLASS : {className}</Text>
+                                </View>
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>ROLL NO. : {rollNo}</Text>
+                                </View>
+                                <View style={styles.badge}>
+                                    <Text style={styles.badgeText}>SAP ID : {sapId}</Text>
+                                </View>
+                            </View>
+                        </View>
 
-                    <TouchableOpacity style={styles.actionButton} >
-                        <MaterialIcons name="delete" size={18} color="#ff4d4d" />
-                        <Text style={styles.actionText}>Delete Account</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                        {/* ═══ CGPA Card ═══ */}
+                        <View style={styles.statCard}>
+                            <Text style={styles.statLabel}>CGPA</Text>
+                            <View style={styles.statValueRow}>
+                                <Text style={styles.statBigValue}>{cgpa || "—"}</Text>
+                                {semester && (
+                                    <Text style={styles.statSubtext}>till Semester {semester}</Text>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* ═══ Attendance Card ═══ */}
+                        <View style={[styles.statCard, { marginTop: 12 }]}>
+                            <Text style={styles.statLabel}>ATTENDANCE RATE</Text>
+                            <View style={styles.statValueRow}>
+                                <Text style={styles.statBigValue}>
+                                    {attendance ? `${attendance}%` : "—"}
+                                </Text>
+                                {attendanceChange && (
+                                    <Text style={[
+                                        styles.statSubtext,
+                                        { color: attendanceChange > 0 ? "#00D4AA" : "#ff4444" },
+                                    ]}>
+                                        {attendanceChange > 0 ? "+" : ""}{attendanceChange}% from last Semester
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* ═══ Action Buttons ═══ */}
+                        <View style={styles.actionsSection}>
+                            {/* Edit Profile */}
+                            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                                <View style={styles.actionLeft}>
+                                    <Feather name="edit" size={18} color="#fff" />
+                                    <Text style={styles.actionText}>EDIT PROFILE</Text>
+                                </View>
+                                <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.3)" />
+                            </TouchableOpacity>
+
+                            {/* Logout */}
+                            <TouchableOpacity
+                                style={[styles.actionButton, styles.actionButtonDanger]}
+                                onPress={handleLogout}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.actionLeft}>
+                                    <Feather name="log-out" size={18} color="#ff4d4d" />
+                                    <Text style={[styles.actionText, styles.actionTextDanger]}>LOGOUT</Text>
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Delete Account */}
+                            <TouchableOpacity
+                                style={[styles.actionButton, styles.actionButtonDelete]}
+                                onPress={handleDeleteAccount}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.actionLeft}>
+                                    <MaterialIcons name="delete-outline" size={20} color="#ff4d4d" />
+                                    <Text style={[styles.actionText, styles.actionTextDanger]}>DELETE ACCOUNT</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </>
+                )}
+            </ScrollView>
         </AppBackgroundStudents>
     );
 };
-
-const DetailRow = ({ label, value }) => (
-    <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
-    </View>
-);
 
 export default ProfileScreen;
 
@@ -155,171 +237,172 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 20,
-        paddingTop: 40, // 🔥 was 60 → better spacing from status bar
     },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+
+    loadingBox: {
         alignItems: "center",
-    },
-
-    logo: {
-        color: "#fff",
-        fontSize: 18,
-        fontWeight: "600",
-    },
-
-    headerIcons: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 15,
-    },
-
-    /* Icons */
-    iconButton: {
-        width: 40,
-        height: 40,
         justifyContent: "center",
-        alignItems: "center",
+        paddingTop: 100,
     },
 
-    activeBubble: {
-        backgroundColor: "rgba(255, 255, 255, 0.15)",
-        width: 45,
-        height: 45,
-        borderRadius: 25,
-        justifyContent: "center",
-        alignItems: "center",
-
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.2)",
-
-        // 🔥 depth
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
-        elevation: 6,
-    },
-    /* Top Right */
-    topIcons: {
-        position: "absolute",
-        right: 20,
-        top: 60,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 15,
-    },
-
-    profileIcon: {
-        borderRadius: 18,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.15)",
-        width: 45,
-        height: 45,
-        borderRadius: 25,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    /* Profile */
-    profileRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 40,
-        gap: 15,
-    },
-
-    avatar: {
-        height: 60,
-        width: 60,
-        borderRadius: 30,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.4)",
-        backgroundColor: "rgba(255,255,255,0.08)", // 🔥 subtle fill
-        justifyContent: "center",
-        alignItems: "center",
-    },
-
-    name: {
-        color: "#fff",
-        fontSize: 20,
-        fontWeight: "600",
-    },
-
-    role: {
-        color: "rgba(255,255,255,0.6)",
+    loadingText: {
+        color: "rgba(255,255,255,0.4)",
+        marginTop: 12,
         fontSize: 14,
-        marginTop: 2,
     },
 
-    /* Details */
-    sectionTitle: {
+    // ─── Avatar ───
+    avatarSection: {
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 24,
+    },
+
+    avatarRing: {
+        marginBottom: 16,
+    },
+
+    avatarGradientRing: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        padding: 3,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    avatarInner: {
+        width: 114,
+        height: 114,
+        borderRadius: 57,
+        backgroundColor: "#0D0119",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    userName: {
         color: "#fff",
-        marginTop: 30,
-        marginBottom: 12,
-        fontSize: 14,
-        opacity: 0.8,
-        letterSpacing: 0.5, // 🔥 subtle premium feel
+        fontSize: 24,
+        fontWeight: "700",
     },
 
-    detailsCard: {
-        borderRadius: 12,
-        padding: 16,
-        backgroundColor: "rgba(255,255,255,0.05)",
+    // ─── Badges ───
+    badgeSection: {
+        alignItems: "center",
+        marginBottom: 24,
+    },
+
+    badgeFull: {
+        paddingVertical: 8,
+        paddingHorizontal: 18,
+        borderRadius: 20,
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.1)",
+        backgroundColor: "rgba(255,255,255,0.04)",
+        marginBottom: 10,
     },
 
-    detailRow: {
+    badgeRow: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 12, // 🔥 more breathing space
+        flexWrap: "wrap",
+        gap: 8,
+        justifyContent: "center",
     },
 
-    detailLabel: {
-        color: "rgba(255,255,255,0.6)",
+    badge: {
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.1)",
+        backgroundColor: "rgba(255,255,255,0.04)",
+    },
+
+    badgeText: {
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 10,
+        fontWeight: "600",
+        letterSpacing: 0.8,
+    },
+
+    // ─── Stat Cards ───
+    statCard: {
+        borderRadius: 18,
+        padding: 20,
+        backgroundColor: "rgba(255,255,255,0.04)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        marginBottom: 4,
+    },
+
+    statLabel: {
+        color: "#00D4AA",
         fontSize: 12,
+        fontWeight: "700",
+        letterSpacing: 1.5,
+        marginBottom: 6,
     },
 
-    detailValue: {
+    statValueRow: {
+        flexDirection: "row",
+        alignItems: "baseline",
+        gap: 12,
+    },
+
+    statBigValue: {
         color: "#fff",
-        fontSize: 12,
+        fontSize: 40,
+        fontWeight: "800",
     },
 
-    /* Bottom */
-    bottomSection: {
-        position: "absolute",
-        bottom: 100, // 🔥 lifted slightly above tab bar
-        left: 0,
-        right: 0,
-        paddingHorizontal: 20,
+    statSubtext: {
+        color: "rgba(255,255,255,0.4)",
+        fontSize: 13,
+        fontWeight: "500",
+    },
+
+    // ─── Action Buttons ───
+    actionsSection: {
+        marginTop: 24,
     },
 
     actionButton: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        justifyContent: "space-between",
         paddingVertical: 16,
-        paddingHorizontal: 16,
+        paddingHorizontal: 18,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.15)",
-        marginBottom: 12,
-        width: "100%",
+        borderColor: "rgba(255,255,255,0.08)",
         backgroundColor: "rgba(255,255,255,0.04)",
+        marginBottom: 10,
+    },
 
-        // 🔥 depth
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 5,
+    actionButtonDanger: {
+        borderColor: "rgba(255,77,77,0.15)",
+        backgroundColor: "rgba(255,77,77,0.04)",
+    },
+
+    actionButtonDelete: {
+        borderColor: "rgba(255,77,77,0.15)",
+        backgroundColor: "rgba(255,77,77,0.04)",
+    },
+
+    actionLeft: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
     },
 
     actionText: {
         color: "#fff",
-        fontSize: 14,
+        fontSize: 13,
+        fontWeight: "600",
+        letterSpacing: 1,
+    },
+
+    actionTextDanger: {
+        color: "#ff4d4d",
     },
 });

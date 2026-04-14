@@ -14,7 +14,7 @@ import SignupScreen from "./screens/auth/signup";
 
 // Navigator
 import RootNavigator from "./navigation/RootNavigator";
-import CommitteeTabNavigator from "./navigation/CommitteeNavigator";
+import { CommitteeTabNavigator } from "./navigation/CommitteeNavigator";
 import CommitteeStack from "./navigation/CommitteeNavigator";
 // Context
 import { UserProvider, useUser } from "./context/UserContext";
@@ -81,10 +81,7 @@ function AppNavigator() {
 export default function App() {
   return (
     <UserProvider>
-      <NavigationContainer>
-        <CommitteeStack />
-      </NavigationContainer>
-      {/* <AppNavigator /> */}
+      <AppNavigator />
       <Toast />
     </UserProvider>
   );
