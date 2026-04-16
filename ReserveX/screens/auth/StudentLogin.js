@@ -95,7 +95,6 @@ export default function LoginScreen({ switchToSignup }) {
 
             const token = loginData.accessToken;
 
-            await AsyncStorage.setItem('accessToken', token);
 
             const meRes = await fetch(
                 'https://reservex.onrender.com/api/auth/me',
@@ -116,7 +115,7 @@ export default function LoginScreen({ switchToSignup }) {
                 id: userData.id,
                 email: userData.email,
                 role: 'student',
-                token,
+                token: token,
             });
 
             Toast.show({

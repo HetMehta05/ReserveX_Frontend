@@ -1,52 +1,74 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const UserContext = createContext();
+const UserContext = createContext(null);
+
+export const STORAGE_KEY = "auth_user";
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // ✅ store id, email, role, token here
+    const [user, setUserState] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const isAuthenticated = !!user?.token;
 
-    // ✅ Restore session on app start
+    // ✅ Restore session
     useEffect(() => {
-        const restoreSession = async () => {
+        const restore = async () => {
             try {
-                const savedToken = await AsyncStorage.getItem("accessToken");
-                const savedUser = await AsyncStorage.getItem("userData"); // optional persistent user
-
-                if (savedToken && savedUser) {
-                    setUser(JSON.parse(savedUser));
+                const stored = await AsyncStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    setUserState(JSON.parse(stored));
                 }
-            } catch (e) {
-                console.log("Error restoring user session", e);
+            } catch (err) {
+                console.log("Restore session error:", err);
             } finally {
                 setLoading(false);
             }
         };
 
-        restoreSession();
+        restore();
     }, []);
 
-    // ✅ Save token + user persistently when user logs in
-    const saveUserSession = async (userData) => {
+    // ✅ Save session
+    const setUser = async (userData) => {
         try {
-            setUser(userData);
-            await AsyncStorage.setItem("accessToken", userData.token);
-            await AsyncStorage.setItem("userData", JSON.stringify(userData));
-        } catch (e) {
-            console.log("Error saving user session", e);
+            if (!userData) {
+                await AsyncStorage.removeItem(STORAGE_KEY);
+                setUserState(null);
+                return;
+            }
+
+            const cleanUser = {
+                id: userData.id,
+                email: userData.email,
+                role: userData.role,
+                token: userData.token,
+            };
+
+            setUserState(cleanUser);
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cleanUser));
+        } catch (err) {
+            console.log("Save session error:", err);
+        }
+    };
+
+    // ✅ Logout
+    const logout = async () => {
+        try {
+            await AsyncStorage.removeItem(STORAGE_KEY);
+            setUserState(null);
+        } catch (err) {
+            console.log("Logout error:", err);
         }
     };
 
     return (
         <UserContext.Provider
             value={{
-                user,                 // ✅ includes user.id, email, role, token
-                setUser: saveUserSession, // ✅ always use this to save persistently
+                user,
+                setUser,
+                logout,
                 loading,
-                setLoading,
                 isAuthenticated,
             }}
         >
