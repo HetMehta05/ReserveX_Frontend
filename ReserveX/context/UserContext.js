@@ -69,6 +69,7 @@ export const UserProvider = ({ children }) => {
                 setUser,
                 logout,
                 loading,
+                setLoading,
                 isAuthenticated,
             }}
         >

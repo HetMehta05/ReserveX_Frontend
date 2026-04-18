@@ -85,7 +85,7 @@ export default function TimetableScreen() {
             try {
                 setLoading(true);
 
-                const data = await getStudentTimetable(user.id);
+                const data = await getStudentTimetable(user.id, user.token);
                 setTimetableData(data?.timetable || []);
             } catch (err) {
                 Toast.show({
@@ -101,24 +101,62 @@ export default function TimetableScreen() {
         };
 
         fetchTimetable();
-    }, [user?.id]);
+    }, [user?.id, user?.token]);
 
     /* ───────── FILTERED DATA ───────── */
+    const getDayOfWeek = (date) => {
+        const jsDay = date.getDay(); // 0 (Sun) → 6 (Sat)
+        return jsDay === 0 ? 7 : jsDay; // convert to 1–7 (Mon–Sun style)
+    };
+
+    useEffect(() => {
+        const today = new Date();
+
+        const day = today.getDay(); // 0 (Sun) - 6 (Sat)
+
+        // force Monday
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + mondayOffset);
+
+        setSelectedDate(monday);
+        setCurrentWeekStart(monday);
+    }, []);
+
+    const isValidSlot = (item) =>
+        item?.timeSlot?.startMinutes != null &&
+        item?.timeSlot?.endMinutes != null;
+
+    const formatTime = (slot) => {
+        const startHrs = Math.floor(slot.startMinutes / 60);
+        const startMins = slot.startMinutes % 60;
+
+        const endHrs = Math.floor(slot.endMinutes / 60);
+        const endMins = slot.endMinutes % 60;
+
+        const format = (h, m) => {
+            const period = h >= 12 ? "PM" : "AM";
+            const hour12 = h % 12 === 0 ? 12 : h % 12;
+            return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+        };
+
+        return `${format(startHrs, startMins)} - ${format(endHrs, endMins)}`;
+    };
 
     const filteredTimetable = useMemo(() => {
+        const selectedDay = getDayOfWeek(selectedDate);
+
         return timetableData
-            .map((item) => ({
-                ...item,
-                start: new Date(item.startTime),
-                end: new Date(item.endTime),
-            }))
-            .filter((item) => isSameDay(item.start, selectedDate))
-            .sort((a, b) => a.start - b.start);
+            .filter((item) => item.dayOfWeek === selectedDay)
+            .filter((item) => item.timeSlot?.startMinutes != null && item.timeSlot?.endMinutes != null)
+            .sort((a, b) => a.timeSlot.startMinutes - b.timeSlot.startMinutes);
     }, [timetableData, selectedDate]);
 
     /* ───────── HELPERS ───────── */
 
     const isSelected = (date) => isSameDay(date, selectedDate);
+
+
 
     /* ───────── UI ───────── */
 
@@ -226,29 +264,21 @@ export default function TimetableScreen() {
                         </View>
                     ) : (
                         filteredTimetable.map((item) => (
-                            <View
-                                key={item.id || item.startTime}
-                                style={styles.row}
-                            >
+                            <View key={item.id} style={styles.row}>
                                 <Text style={styles.time}>
-                                    {new Date(item.startTime).toLocaleTimeString(
-                                        [],
-                                        { hour: "2-digit", minute: "2-digit" }
-                                    )}
+                                    {formatTime(item.timeSlot)}
                                 </Text>
 
                                 <View style={styles.divider} />
 
                                 <View style={styles.details}>
                                     <Text style={styles.subject}>
-                                        {item.subject ||
-                                            item.title ||
-                                            "No Subject"}
+                                        {item.subject?.name || "Free Slot"}
                                     </Text>
 
                                     {item.room && (
                                         <Text style={styles.room}>
-                                            {item.room}
+                                            {item.room.name}
                                         </Text>
                                     )}
                                 </View>

@@ -72,9 +72,9 @@ export default function HomeScreen() {
 
     const loadTimetable = async () => {
         try {
-            if (!user?.id) return;
+            if (!user?.id || !user?.token) return;
 
-            const data = await getStudentTimetable(user.id);
+            const data = await getStudentTimetable(user.id, user.token); // ✅ FIX
 
             processLectures(data.timetable || []);
         } catch (err) {
@@ -90,28 +90,64 @@ export default function HomeScreen() {
 
     const processLectures = (timetable) => {
         const now = new Date();
+        // ✅ FORCE TIME = 08:45 AM
+        now.setHours(8);
+        now.setMinutes(45);
+        now.setSeconds(0, 0);
+
+        // ✅ FORCE MONDAY (1 = Monday)
+        const TARGET_DAY = 1;
 
         const todayLectures = timetable
-            .map((lec) => {
-                const start = new Date(lec.startTime);
-                const end = new Date(lec.endTime);
-                return { ...lec, start, end };
-            })
+            .filter((lec) => lec.dayOfWeek === TARGET_DAY)
             .filter(
-                (lec) => lec.start.toDateString() === now.toDateString()
+                (lec) =>
+                    lec.timeSlot?.startMinutes != null &&
+                    lec.timeSlot?.endMinutes != null
             )
+            .map((lec) => {
+                // ✅ Convert minutes → actual Date
+                const start = new Date();
+                start.setHours(Math.floor(lec.timeSlot.startMinutes / 60));
+                start.setMinutes(lec.timeSlot.startMinutes % 60);
+                start.setSeconds(0);
+
+                const end = new Date();
+                end.setHours(Math.floor(lec.timeSlot.endMinutes / 60));
+                end.setMinutes(lec.timeSlot.endMinutes % 60);
+                end.setSeconds(0);
+
+                return {
+                    ...lec,
+                    subject: lec.subject?.name || "Free Slot", // ✅ FIX SUBJECT
+                    start,
+                    end,
+                };
+            })
             .sort((a, b) => a.start - b.start);
 
-        const current = todayLectures.find(
-            (lec) => now >= lec.start && now <= lec.end
-        );
+        let current = null;
+        let next = null;
 
-        const next = todayLectures.find((lec) =>
-            current ? lec.start > current.end : lec.start > now
-        );
+        for (let i = 0; i < todayLectures.length; i++) {
+            const lec = todayLectures[i];
 
-        setCurrentLecture(current || null);
-        setNextLecture(next || null);
+            // ✅ CURRENT lecture
+            if (now >= lec.start && now <= lec.end) {
+                current = lec;
+                next = todayLectures[i + 1] || null;
+                break;
+            }
+
+            // ✅ NEXT lecture
+            if (now < lec.start) {
+                next = lec;
+                break;
+            }
+        }
+
+        setCurrentLecture(current);
+        setNextLecture(next);
     };
 
     return (
@@ -149,7 +185,7 @@ export default function HomeScreen() {
 
                 {hasAnyLecture ? (
                     <>
-                        {/* ✅ CURRENT LECTURE */}
+                        {/* 🔵 CURRENT LECTURE */}
                         {hasCurrent && (
                             <LinearGradient
                                 colors={["#1A103D", "#2A1E5C", "rgba(255,255,255,0.08)"]}
@@ -158,6 +194,7 @@ export default function HomeScreen() {
                                 end={{ x: 1, y: 0.9 }}
                                 style={styles.card}
                             >
+                                {/* Header */}
                                 <View style={styles.rowBetween}>
                                     <Text style={[styles.cardLabel, { color: "#81ECFF" }]}>
                                         CURRENT LECTURE
@@ -169,23 +206,49 @@ export default function HomeScreen() {
                                     </View>
                                 </View>
 
+                                {/* Title */}
                                 <Text style={styles.title}>
                                     {currentLecture.subject}
                                 </Text>
 
-                                <Text style={styles.infoText}>
-                                    {currentLecture.start.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })} - {currentLecture.end.toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </Text>
+                                {/* Info Row */}
+                                <View style={styles.infoRow}>
+                                    {/* TIME */}
+                                    <View style={styles.infoBox}>
+                                        <View style={styles.iconBg}>
+                                            <Ionicons name="time-outline" size={20} color="#81ECFF" />
+                                        </View>
+                                        <View>
+                                            <Text style={styles.infoLabel}>TIME</Text>
+                                            <Text style={styles.infoText}>
+                                                {currentLecture.start.toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })} - {currentLecture.end.toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {/* LOCATION */}
+                                    <View style={styles.infoBox}>
+                                        <View style={styles.iconBg}>
+                                            <Ionicons name="location-outline" size={20} color="#81ECFF" />
+                                        </View>
+                                        <View>
+                                            <Text style={styles.infoLabel}>LOCATION</Text>
+                                            <Text style={styles.infoText}>
+                                                {currentLecture.room?.name || "Classroom"}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
                             </LinearGradient>
                         )}
 
-                        {/* ✅ NEXT LECTURE (works for both cases) */}
+                        {/* 🟣 NEXT LECTURE */}
                         {hasNext && (
                             <LinearGradient
                                 colors={["#0F0A2B", "#1A103D", "rgba(255,255,255,0.06)"]}
@@ -202,12 +265,19 @@ export default function HomeScreen() {
                                     {nextLecture.subject}
                                 </Text>
 
+                                <Text style={styles.infoLabel}>STARTS AT</Text>
+
                                 <Text style={styles.timeHighlight}>
                                     {nextLecture.start.toLocaleTimeString([], {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                     })}
                                 </Text>
+
+                                {/* Arrow Button */}
+                                <TouchableOpacity style={styles.arrowBtn}>
+                                    <Ionicons name="arrow-forward" size={22} color="#fff" />
+                                </TouchableOpacity>
                             </LinearGradient>
                         )}
                     </>
