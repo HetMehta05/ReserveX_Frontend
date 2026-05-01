@@ -1,102 +1,144 @@
 import React from 'react';
 import {
-    StyleSheet,
     View,
     Text,
+    StyleSheet,
+    Image,
     TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AppBackgroundStudents from '../../layouts/AppBackgroundStudents';
+import Logo from "../../assets/ReserveX.svg";
 
-export default function LandingScreen({ navigation }) {
+const LandingContent = ({ navigation }) => {
     return (
-        <AppBackgroundStudents >
+        <AppBackgroundStudents>
             <View style={styles.container}>
 
-                <View style={styles.topSpace} />
+                {/* Logo */}
+                <Logo width={200} height={90} style={styles.logo} />
 
-                <View style={styles.logoContainer}>
-                    <Text style={styles.logo}>ReserveX</Text>
-                </View>
+                {/* Title */}
+                <Text style={styles.tagline}>TAGLINE</Text>
 
+                {/* Buttons */}
                 <View style={styles.buttonContainer}>
+
+                    {/* Student */}
                     <TouchableOpacity
-                        style={styles.buttonWrapper}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate('Login_Student')}
+                        activeOpacity={0.85}
+                        onPress={() => navigation.navigate('AuthScreen')}
                     >
                         <LinearGradient
-                            colors={['#C281FF', '#5623CD']}
+                            colors={['#140A3C', 'rgba(255,255,255,0.08)']}
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.button}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.card}
                         >
-                            <Text style={styles.buttonText}>Student</Text>
+                            <Text style={styles.cardText}>Student</Text>
+
+                            <View style={styles.iconWrapper}>
+                                <Ionicons name="school-outline" size={20} color="#fff" />
+                            </View>
                         </LinearGradient>
                     </TouchableOpacity>
 
+                    {/* Committee */}
                     <TouchableOpacity
-                        style={styles.buttonWrapper}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate('Login_Committee')}
+                        activeOpacity={0.85}
+                        onPress={() => navigation.navigate('AuthScreen')}
                     >
                         <LinearGradient
-                            colors={['#C281FF', '#5623CD']}
+                            colors={['#140A3C', 'rgba(255,255,255,0.08)']}
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.button}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.card}
                         >
-                            <Text style={styles.buttonText}>Committee Member</Text>
+                            <Text style={styles.cardText}>Committee</Text>
+
+                            <View style={styles.iconWrapper}>
+                                <Ionicons name="people-outline" size={20} color="#fff" />
+                            </View>
                         </LinearGradient>
                     </TouchableOpacity>
+
                 </View>
             </View>
         </AppBackgroundStudents>
     );
-}
+};
+
+export default LandingContent;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 25,
-    },
-    topSpace: {
-        flex: 1,
-    },
-    logoContainer: {
-        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+        paddingHorizontal: 24,
     },
-    logo: {
-        fontSize: 55,
-        fontFamily: 'Times New Roman',
-        color: 'silver',
 
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
+    logo: {
+        width: 80,
+        height: 80,
+        alignSelf: 'center',
+        marginBottom: 20,
     },
+
+    title: {
+        fontSize: 44,
+        color: '#E5E5E5',
+        textAlign: 'center',
+        fontWeight: '600',
+        letterSpacing: 1,
+    },
+
+    tagline: {
+        textAlign: 'center',
+        color: '#6EE7FF',
+        marginTop: 6,
+        marginBottom: 50,
+        fontSize: 12,
+        letterSpacing: 2,
+    },
+
     buttonContainer: {
-        flex: 1.5,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        width: '100%',
+        gap: 20,
     },
-    buttonWrapper: {
-        width: '80%',
-        marginBottom: 25,
-    },
-    button: {
-        paddingVertical: 14,
+
+    card: {
+        height: 90,
         borderRadius: 25,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
+        justifyContent: 'space-between',
+
+        // subtle glass border
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
+
+        // shadow for depth
+        shadowColor: '#000',
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 6,
     },
-    buttonText: {
-        color: '#fff',
-        fontFamily: 'DMMono-Regular',
+
+    cardText: {
+        color: '#FFFFFF',
         fontSize: 16,
+        fontWeight: '500',
+    },
+
+    iconWrapper: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        // lighter circular highlight (right side)
+        backgroundColor: 'rgba(255,255,255,0.10)',
     },
 });

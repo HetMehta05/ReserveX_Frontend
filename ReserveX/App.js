@@ -10,56 +10,56 @@ import LandingScreen from "./screens/common/LandingScreen";
 import LoginScreenStudent from "./screens/auth/StudentLogin";
 import LoginScreenCommittee from "./screens/auth/CommitteeLogin";
 import StudentSignupScreen from "./screens/auth/signup";
-import SignupScreen from "./screens/auth/signup";
 
-// Navigator
+// Navigators
 import RootNavigator from "./navigation/RootNavigator";
-import { CommitteeTabNavigator } from "./navigation/CommitteeNavigator";
-import CommitteeStack from "./navigation/CommitteeNavigator";
+import CommitteeTabNavigator from "./navigation/CommitteeNavigator";
+
 // Context
 import { UserProvider, useUser } from "./context/UserContext";
-
-
+import AuthScreen from "./screens/auth/AuthScreen";
 
 const Stack = createNativeStackNavigator();
 
-
-// 🔹 Separate navigator component (clean pattern)
+// 🔹 App Navigator
 function AppNavigator() {
-  const { token, user, loading, setLoading, setToken } = useUser();
+  const { user, loading, setLoading, setUser } = useUser();
 
+  // Restore session on app start
   useEffect(() => {
-    const checkAuth = async () => {
+    const restoreSession = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem("accessToken");
+        const savedToken = await AsyncStorage.getItem("accessToken");
+        const savedUser = await AsyncStorage.getItem("userData");
 
-        if (storedToken) {
-          setToken(storedToken);
+        if (savedToken && savedUser) {
+          // setUser will save token and user in context + AsyncStorage
+          setUser(JSON.parse(savedUser));
         }
       } catch (err) {
-        console.log("Auth check error:", err);
+        console.log("Error restoring session:", err);
       } finally {
-        setTimeout(() => setLoading(false), 1000);
+        setLoading(false);
       }
     };
 
-    checkAuth();
+    restoreSession();
   }, []);
 
-  if (loading) return <SplashScreen />;
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-
-        {!token ? (
+        {!user?.token ? (
           <>
             <Stack.Screen name="Landing" component={LandingScreen} />
-            <Stack.Screen name="Login_Student" component={LoginScreenStudent} />
-            <Stack.Screen name="Signup_Student" component={SignupScreen} />
+            <Stack.Screen name="AuthScreen" component={AuthScreen} />
             <Stack.Screen name="Login_Committee" component={LoginScreenCommittee} />
           </>
-        ) : user?.role === "committee" ? (
+        ) : user.role === "committee" ? (
           <Stack.Screen
             name="Committee_Main"
             component={CommitteeTabNavigator}
@@ -70,12 +70,10 @@ function AppNavigator() {
             component={RootNavigator}
           />
         )}
-
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
 
 // 🔹 Root App
 export default function App() {

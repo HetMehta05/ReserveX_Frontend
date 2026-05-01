@@ -6,76 +6,80 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import AppBackgroundStudent from "../../layouts/AppBackgroundStudents";
 
-export default function SignupScreen() {
-  const navigation = useNavigation();
+import AppBackgroundStudent from "../../layouts/AppBackgroundStudents";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Logo from "../../assets/ReserveX.svg";
+
+export default function SignupScreen({ switchToLogin }) {
 
   const [form, setForm] = useState({
+    sapId: '',
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
   });
-  const [activeTab, setActiveTab] = useState('Signup_Student');
 
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
     if (loading) return;
 
-    if (!form.username || !form.password || !form.confirmPassword) {
-      Toast.show({
+    const { sapId, username, email, password, confirmPassword } = form;
+
+    if (!sapId || !username || !email || !password || !confirmPassword) {
+      return Toast.show({
         type: 'error',
         text1: 'Missing Fields',
         text2: 'Please fill all fields',
       });
-      return;
     }
 
-    if (form.password !== form.confirmPassword) {
-      Toast.show({
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return Toast.show({
         type: 'error',
-        text1: 'Password Mismatch',
-        text2: 'Passwords do not match',
+        text1: 'Invalid Email',
       });
-      return;
     }
 
     try {
       setLoading(true);
 
-      // 🔁 Replace with your signup API
-      const response = await fetch('https://reserveX.onrender.com/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.username.trim(),
-          password: form.password,
-        }),
-      });
+      const res = await fetch(
+        'https://reservex.onrender.com/api/auth/register',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: username.trim(),
+            email: email.trim(),
+            password,
+            role: 'STUDENT',
+            idNumber: sapId.trim(),
+          })
+        }
+      );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
-      }
+      if (!res.ok) throw new Error(data?.message || 'Signup failed');
 
       Toast.show({
         type: 'success',
-        text1: 'Signup Successful',
-        text2: 'Account created successfully!',
+        text1: 'Account Created',
+        text2: 'You can now login',
       });
+
+      //  auto switch
+      switchToLogin?.();
 
     } catch (err) {
       Toast.show({
@@ -83,184 +87,168 @@ export default function SignupScreen() {
         text1: 'Signup Failed',
         text2: err.message,
       });
+      console.log(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#000' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
-    >
-      <AppBackgroundStudent>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="on-drag"
-        >
+    <AppBackgroundStudent>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.scrollContainer}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={80}
+        enableAutomaticScroll={true}
+        showsVerticalScrollIndicator={false}
+        resetScrollToCoords={{ x: 0, y: 0 }}
+      >
+        <View style={styles.container}>
+
+          {/* Logo */}
+          <Logo width={120} height={50} style={styles.logo} />
+
+          <Image
+            source={require('../../assets/signup_img.png')}
+            style={styles.image}
+            resizeMode="contain"
+          />
+
+          <BlurView intensity={40} tint="dark" style={styles.glassCard}>
+
+            {/* Toggle */}
+            <View style={styles.toggleContainer}>
+              <TouchableOpacity
+                style={styles.inactiveToggle}
+                onPress={switchToLogin}
+              >
+                <Text style={styles.inactiveText}>Login</Text>
+              </TouchableOpacity>
+
+              <View style={styles.activeToggle}>
+                <Text style={styles.activeText}>Signup</Text>
+              </View>
+            </View>
 
 
-          <View style={styles.container}>
-
-            <Text style={styles.logo}>ReserveX</Text>
-
-            <Image
-              source={require('../../assets/loginPage_img.png')}
-              style={styles.image}
-              resizeMode="contain"
+            {/* Username */}
+            <TextInput
+              placeholder="SAP ID"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+              style={styles.input}
+              value={form.sapId}
+              onChangeText={(text) =>
+                setForm(prev => ({ ...prev, sapId: text }))
+              }
             />
 
-            <BlurView intensity={40} tint="dark" style={styles.glassCard}>
+            <TextInput
+              placeholder="Username"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+              style={styles.input}
+              value={form.username}
+              onChangeText={(text) =>
+                setForm(prev => ({ ...prev, username: text }))
+              }
+            />
 
-              {/* Toggle */}
-              <View style={styles.toggleContainer}>
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+              style={styles.input}
+              value={form.email}
+              onChangeText={(text) =>
+                setForm(prev => ({ ...prev, email: text }))
+              }
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-                {/* LOGIN TAB */}
-                <TouchableOpacity
-                  style={styles.toggleWrapper}
-                  onPress={() => navigation.replace("Login_Student")}
-                  activeOpacity={0.8}
-                >
-                  {activeTab === 'login' ? (
-                    <LinearGradient
-                      colors={['#C281FF', '#5623CD']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      style={styles.activeToggle}
-                    >
-                      <Text style={[styles.toggleText, { color: '#fff' }]}>
-                        Login
-                      </Text>
-                    </LinearGradient>
-                  ) : (
-                    <View style={styles.inactiveToggle}>
-                      <Text style={[styles.toggleText, { color: '#000' }]}>
-                        Login
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
 
-                {/* SIGNUP TAB */}
-                <TouchableOpacity
-                  style={styles.toggleWrapper}
-                  onPress={() => setActiveTab('Signup_Student')}
-                  activeOpacity={0.8}
-                >
-                  {activeTab === 'Signup_Student' ? (
-                    <LinearGradient
-                      colors={['#C281FF', '#5623CD']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      style={styles.activeToggle}
-                    >
-                      <Text style={[styles.toggleText, { color: '#fff' }]}>
-                        Signup
-                      </Text>
-                    </LinearGradient>
-                  ) : (
-                    <View style={styles.inactiveToggle}>
-                      <Text style={[styles.toggleText, { color: '#000' }]}>
-                        Signup
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-              {/* Username */}
+            {/* Password */}
+            <View style={styles.passwordContainer}>
               <TextInput
-                placeholder="Email"
+                placeholder="Password"
+                value={form.password}
                 placeholderTextColor="rgba(255,255,255,0.6)"
-                style={styles.input}
-                value={form.username}
+                secureTextEntry={!showPassword}
+                style={styles.passwordInput}
                 onChangeText={(text) =>
-                  setForm(prev => ({ ...prev, username: text }))
+                  setForm(prev => ({ ...prev, password: text }))
                 }
               />
 
-              {/* Password */}
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  placeholder="Password"
-                  value={form.password}
-                  placeholderTextColor="rgba(255,255,255,0.6)"
-                  secureTextEntry={!showPassword}
-                  style={styles.passwordInput}
-                  onChangeText={(text) =>
-                    setForm(prev => ({ ...prev, password: text }))
-                  }
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
-                >
-                  <Ionicons
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={20}
-                    color="#ffffff"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Confirm Password */}
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  placeholder="Confirm Password"
-                  value={form.confirmPassword}
-                  placeholderTextColor="rgba(255,255,255,0.6)"
-                  secureTextEntry={!showConfirmPassword}
-                  style={styles.passwordInput}
-                  onChangeText={(text) =>
-                    setForm(prev => ({ ...prev, confirmPassword: text }))
-                  }
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.eyeIcon}
-                >
-                  <Ionicons
-                    name={showConfirmPassword ? 'eye-off' : 'eye'}
-                    size={20}
-                    color="#ffffff"
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* Signup Button */}
               <TouchableOpacity
-                style={{ marginTop: 25 }}
-                activeOpacity={0.8}
-                onPress={handleSignup}
-                disabled={loading}
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
               >
-                <LinearGradient
-                  colors={['#C281FF', '#5623CD']}
-                  style={styles.loginButton}
-                >
-                  <Text style={styles.loginText}>
-                    {loading ? 'Please wait...' : 'Signup'}
-                  </Text>
-                </LinearGradient>
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={20}
+                  color="#ffffff"
+                />
               </TouchableOpacity>
+            </View>
 
-            </BlurView>
-          </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+                placeholderTextColor="rgba(255,255,255,0.6)"
+                secureTextEntry={!showConfirmPassword}
+                style={styles.passwordInput}
+                onChangeText={(text) =>
+                  setForm(prev => ({ ...prev, confirmPassword: text }))
+                }
+              />
 
-        </ScrollView>
-      </AppBackgroundStudent>
-    </KeyboardAvoidingView>
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? 'eye-off' : 'eye'}
+                  size={20}
+                  color="#ffffff"
+                />
+              </TouchableOpacity>
+            </View>
+
+
+            {/* Signup Button */}
+            <TouchableOpacity
+              style={styles.SignupButtonWrapper}
+              onPress={handleSignup}
+              disabled={loading}
+            >
+              <View style={styles.SignupButton}>
+                <Text style={styles.SignupText}>
+                  {loading ? 'Please wait...' : 'Signup'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+          </BlurView>
+        </View>
+
+      </KeyboardAwareScrollView>
+    </AppBackgroundStudent >
+
   );
 }
 
 const styles = StyleSheet.create({
+
+  scrollContainer: {
+    flexGrow: 1,
+  },
+
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 25,
-    justifyContent: 'center',
-    marginTop: 50,
+    paddingTop: 40,
+    paddingBottom: 80,
   },
 
   logo: {
@@ -285,32 +273,38 @@ const styles = StyleSheet.create({
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    borderRadius: 30,              // fully rounded
+    backgroundColor: '#004D57',
+    borderRadius: 30,
     marginBottom: 25,
     padding: 3,
   },
 
-  toggleWrapper: {
-    flex: 1,
-  },
-
   activeToggle: {
+    flex: 1,
     paddingVertical: 10,
-    borderRadius: 25,
     alignItems: 'center',
+    backgroundColor: '#81ECFF',
+    borderRadius: 25,
   },
 
   inactiveToggle: {
+    flex: 1,
     paddingVertical: 10,
-    borderRadius: 25,
     alignItems: 'center',
   },
 
-  toggleText: {
+  activeText: {
+    color: '#000',
     fontFamily: 'DMMono-Regular',
-    fontSize: 16
+    fontSize: 16,
   },
+
+  inactiveText: {
+    color: '#fff',
+    fontFamily: 'DMMono-Regular',
+    fontSize: 16,
+  },
+
   input: {
     borderBottomWidth: 1,
     borderBottomColor: "#fff",
@@ -319,18 +313,29 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'DMMono-Regular',
   },
-  loginButton: {
-    paddingVertical: 14,
-    borderRadius: 25,
+  SignupButtonWrapper: {
+    marginTop: 25,
     alignItems: 'center',
-    width: 150,
-    alignSelf: 'center',
+    marginBottom: 20,
   },
-  loginText: {
-    color: '#fff',
+
+  SignupButton: {
+    paddingVertical: 14,
+    borderRadius: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 150,
+    backgroundColor: '#81ECFF',
+  },
+
+  SignupText: {
     fontFamily: 'DMMono-Regular',
     fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
   },
+
+
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',

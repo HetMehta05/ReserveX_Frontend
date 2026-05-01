@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Logo from "../assets/ReserveX.svg";
 
 export default function Header({ currentScreen }) {
     const navigation = useNavigation();
@@ -12,7 +13,7 @@ export default function Header({ currentScreen }) {
 
     return (
         <View style={styles.header}>
-            <Text style={styles.logo}>ReserveX</Text>
+            <Logo width={120} height={50} style={styles.logo} />
 
             <View style={styles.headerIcons}>
                 {/* Notification Icon */}
@@ -41,6 +42,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         marginBottom: 30,
+        marginTop: 20,
     },
     logo: {
         color: "#fff",

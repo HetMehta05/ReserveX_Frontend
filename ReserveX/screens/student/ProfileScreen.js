@@ -16,7 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
 import Header from "../../components/Header";
 import { useUser } from "../../context/UserContext";
-import { getStudentProfile, deleteUserAccount } from "../../services/api";
+import { deleteUserAccount, getUserProfile } from "../../services/api";
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
@@ -36,7 +36,7 @@ const ProfileScreen = () => {
                 setLoading(false);
                 return;
             }
-            const data = await getStudentProfile(userId);
+            const data = await getUserProfile(userId);
             setProfile(data);
         } catch (err) {
             console.log("Profile fetch error:", err);
@@ -96,16 +96,25 @@ const ProfileScreen = () => {
     };
 
     // Extract profile fields with fallbacks
-    const studentData = profile?.student || profile?.user || profile || {};
-    const userName = studentData.name || user?.name || "Student";
-    const department = studentData.department?.name || studentData.departmentName || studentData.department || "—";
-    const className = studentData.class?.name || studentData.className || studentData.class || "—";
-    const rollNo = studentData.rollNo || studentData.rollNumber || "—";
-    const sapId = studentData.sapId || studentData.sapID || studentData.sap || "—";
-    const cgpa = studentData.cgpa || studentData.CGPA || null;
-    const semester = studentData.semester?.number || studentData.semesterNumber || studentData.semester || null;
-    const attendance = studentData.attendance || studentData.attendanceRate || null;
-    const attendanceChange = studentData.attendanceChange || null;
+    const student = profile?.student || {};
+    const userData = profile || {};
+
+    const userName = userData.name || "Student";
+    const email = userData.email || "—";
+
+    const rollNo = student.rollNumber || "—";
+    const admissionYear = student.admissionYear || "—";
+
+    // Since backend gives only IDs (not names)
+    const className = student.classId ? "Assigned" : "—";
+    const department = userData.department?.name || "—";
+
+    // Optional placeholders
+    const sapId = student.sapId || "—";
+    const cgpa = student.cgpa || null;
+    const semester = student.semester || null;
+    const attendance = student.attendance || null;
+    const attendanceChange = student.attendanceChange || null;
 
     return (
         <AppBackgroundStudents>
@@ -139,23 +148,34 @@ const ProfileScreen = () => {
                             </View>
 
                             <Text style={styles.userName}>{userName}</Text>
+                            <Text style={styles.userEmail}>{email}</Text>
                         </View>
 
                         {/* ═══ Info Badges ═══ */}
                         <View style={styles.badgeSection}>
                             <View style={styles.badgeFull}>
-                                <Text style={styles.badgeText}>DEPARTMENT : {department.toUpperCase()}</Text>
+                                <Text style={styles.badgeText}>
+                                    DEPARTMENT : {department.toUpperCase()}
+                                </Text>
                             </View>
 
                             <View style={styles.badgeRow}>
                                 <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>CLASS : {className}</Text>
+                                    <Text style={styles.badgeText}>
+                                        CLASS : {className}
+                                    </Text>
                                 </View>
+
                                 <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>ROLL NO. : {rollNo}</Text>
+                                    <Text style={styles.badgeText}>
+                                        ROLL NO. : {rollNo}
+                                    </Text>
                                 </View>
+
                                 <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>SAP ID : {sapId}</Text>
+                                    <Text style={styles.badgeText}>
+                                        YEAR : {admissionYear}
+                                    </Text>
                                 </View>
                             </View>
                         </View>
@@ -284,6 +304,12 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 24,
         fontWeight: "700",
+    },
+
+    userEmail: {
+        color: "#A0A3BD",
+        fontSize: 12,
+        marginTop: 4,
     },
 
     // ─── Badges ───

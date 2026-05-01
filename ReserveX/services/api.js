@@ -1,12 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { STORAGE_KEY } from "../context/UserContext";
 const BASE_URL = "https://reservex.onrender.com/api";
 
 // ─── Helper: get auth headers ───
 const getAuthHeaders = async () => {
-    const token = await AsyncStorage.getItem("accessToken");
+    // 1. Try AsyncStorage first (safe fallback)
+    const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : null;
+
+    const token = parsed?.token;
+
     return {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Authorization: `Bearer ${token}`,
     };
 };
 
@@ -195,9 +201,26 @@ export const deleteUserAccount = async (userId) => {
 //  TIMETABLE
 // ═══════════════════════════════════════════
 
-export const getStudentTimetable = async (studentId) => {
-    const headers = await getAuthHeaders();
-    const response = await fetch(`${BASE_URL}/timetable/student/${studentId}`, { headers });
+// export const getStudentTimetable = async (studentId) => {
+//     const headers = await getAuthHeaders();
+//     const response = await fetch(`${BASE_URL}/timetable/student/${studentId}`, { headers });
+//     const data = await response.json();
+//     if (!response.ok) throw new Error(data.message || "Failed to fetch timetable");
+//     return data;
+// };
+
+export const getStudentTimetable = async (studentId, token) => {
+    const response = await fetch(
+        `${BASE_URL}/timetable/student/${studentId}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Failed to fetch timetable");
     return data;
