@@ -24,6 +24,7 @@ export default function LoginScreen() {
     const { setUserId } = useUser();
     const [activeTab, setActiveTab] = useState('login');
     const [form, setForm] = useState({
+        name: '',
         username: '',
         password: '',
     });
@@ -32,14 +33,14 @@ export default function LoginScreen() {
     const [error, setError] = useState('');
 
 
-    const handleLogin = async () => {
+    const handleAuth = async () => {
         if (loading) return;
 
-        if (!form.username || !form.password) {
+        if (!form.username || !form.password || (activeTab === 'signup' && !form.name)) {
             Toast.show({
                 type: 'error',
                 text1: 'Missing Fields',
-                text2: 'Please enter email and password',
+                text2: 'Please fill all required fields',
             });
             return;
         }
@@ -47,40 +48,48 @@ export default function LoginScreen() {
         try {
             setLoading(true);
 
-            const response = await fetch('https://reserveX.onrender.com/api/auth/login', {
+            const endpoint = activeTab === 'signup' ? '/auth/register' : '/auth/login';
+            const body = activeTab === 'signup' 
+                ? { name: form.name.trim(), email: form.username.trim(), password: form.password, role: 'COMMITTEE' }
+                : { email: form.username.trim(), password: form.password };
+
+            const response = await fetch(`https://reservex.onrender.com/api${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: form.username.trim(),
-                    password: form.password,
-                }),
+                body: JSON.stringify(body),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.message || `${activeTab === 'signup' ? 'Signup' : 'Login'} failed`);
             }
 
-            await AsyncStorage.setItem('accessToken', data.accessToken);
+            if (activeTab === 'signup') {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Account Created',
+                    text2: 'Please login now.',
+                });
+                setActiveTab('login');
+            } else {
+                await AsyncStorage.setItem('accessToken', data.accessToken);
 
-            Toast.show({
-                type: 'success',
-                text1: 'Login Successful',
-                text2: 'Welcome back!',
-            });
+                Toast.show({
+                    type: 'success',
+                    text1: 'Login Successful',
+                    text2: 'Welcome back!',
+                });
 
-            setUser({
-                ...data.user,
-                role: "committee"
-            });
-
-            setToken(data.accessToken);
-
+                setUser({
+                    ...data.user,
+                    role: "committee"
+                });
+            }
         } catch (err) {
             Toast.show({
                 type: 'error',
-                text1: 'Login Failed',
+                text1: `${activeTab === 'signup' ? 'Signup' : 'Login'} Failed`,
                 text2: err.message,
             });
         } finally {
@@ -173,6 +182,17 @@ export default function LoginScreen() {
                             </View>
 
                             {/* Inputs */}
+                            {activeTab === 'signup' && (
+                                <TextInput
+                                    placeholder="Name"
+                                    placeholderTextColor="rgba(255,255,255,0.6)"
+                                    style={styles.input}
+                                    value={form.name}
+                                    onChangeText={(text) =>
+                                        setForm(prev => ({ ...prev, name: text }))
+                                    }
+                                />
+                            )}
                             <TextInput
                                 placeholder="Email"
                                 placeholderTextColor="rgba(255,255,255,0.6)"
@@ -211,11 +231,11 @@ export default function LoginScreen() {
                             </View>
 
 
-                            {/* Login Button */}
+                            {/* Auth Button */}
                             <TouchableOpacity
                                 style={{ marginTop: 25 }}
                                 activeOpacity={0.8}
-                                onPress={handleLogin}
+                                onPress={handleAuth}
                                 disabled={loading}>
 
                                 <LinearGradient
@@ -225,7 +245,7 @@ export default function LoginScreen() {
                                     style={styles.loginButton}
                                 >
                                     <Text style={styles.loginText}>
-                                        {loading ? 'Please wait...' : 'Login'}
+                                        {loading ? 'Wait...' : (activeTab === 'signup' ? 'Signup' : 'Login')}
                                     </Text>
                                 </LinearGradient>
                             </TouchableOpacity>

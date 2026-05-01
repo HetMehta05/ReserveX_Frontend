@@ -10,8 +10,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AppBackgroundStudents from '../../layouts/AppBackgroundStudents';
 import Logo from "../../assets/ReserveX.svg";
+import { useUser } from "../../context/UserContext";
 
 const LandingContent = ({ navigation }) => {
+    const { setUser } = useUser();
     return (
         <AppBackgroundStudents>
             <View style={styles.container}>
@@ -47,7 +49,15 @@ const LandingContent = ({ navigation }) => {
                     {/* Committee */}
                     <TouchableOpacity
                         activeOpacity={0.85}
-                        onPress={() => navigation.navigate('AuthScreen')}
+                        onPress={() => {
+                            setUser({
+                                id: "dummy-committee",
+                                name: "Admin",
+                                email: "committee@reservex.com",
+                                role: "committee",
+                                token: "dummy-auth-token"
+                            });
+                        }}
                     >
                         <LinearGradient
                             colors={['#140A3C', 'rgba(255,255,255,0.08)']}

@@ -123,11 +123,7 @@ export default function EventsScreen() {
             const day = d.getDate();
             const suffix = [1, 21, 31].includes(day) ? "st"
                 : [2, 22].includes(day) ? "nd"
-<<<<<<< HEAD
-                : [3, 23].includes(day) ? "rd" : "th";
-=======
                     : [3, 23].includes(day) ? "rd" : "th";
->>>>>>> 9aca3937b4ba6a48253d88a59927b3e269eca71d
             const month = d.toLocaleString("en-US", { month: "short" });
             return `${day}${suffix} ${month}`;
         } catch {

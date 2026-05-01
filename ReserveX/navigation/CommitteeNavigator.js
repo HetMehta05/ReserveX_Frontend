@@ -7,7 +7,7 @@ import { View, StyleSheet } from "react-native";
 import CommitteeHomeScreen from "../screens/committee/CommitteeHome";
 import CommitteeNewsScreen from "../screens/committee/CommitteeNews";
 import CommitteeEventsScreen from "../screens/committee/Committee_Events/committee_events";
-import CreateEventScreen from "../screens/committee/Committee_Events/CommitteeCreateEvent";
+import CreateEditEventScreen from "../screens/committee/Committee_Events/CommitteeCreateEvent";
 import NotificationScreen from "../screens/student/NotificationScreen";
 
 const Tab = createBottomTabNavigator();
@@ -23,29 +23,34 @@ export function CommitteeTabNavigator() {
                 tabBarInactiveTintColor: "#aaa",
                 tabBarLabelStyle: { fontSize: 10, paddingBottom: 10 },
                 tabBarStyle: {
-                    backgroundColor: "#0D0119",
+                    backgroundColor: "#100524", // deep purple background
                     borderTopWidth: 0,
-                    height: 85,
+                    height: 65,
+                    paddingTop: 8,
+                    paddingBottom: 8,
                     position: "absolute",
-                    elevation: 0,
+                    elevation: 10,
                 },
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
-                    if (route.name === "Dash") iconName = "home";
+                    if (route.name === "Dash") iconName = focused ? "home" : "home-outline";
                     if (route.name === "Events") iconName = "calendar";
-                    if (route.name === "News") iconName = "newspaper-outline";
+                    if (route.name === "News") iconName = "document-text-outline";
+
+                    // Active icon color
+                    const finalColor = focused ? "#C2BAFF" : "rgba(255,255,255,0.4)";
 
                     return (
-                        <View style={focused ? styles.activeIconContainer : null}>
-                            <Ionicons name={iconName} size={22} color={color} />
+                        <View style={focused ? styles.activeIconWrap : null}>
+                            <Ionicons name={iconName} size={22} color={finalColor} />
                         </View>
                     );
                 },
             })}
         >
-            <Tab.Screen name="Dash" component={CommitteeHomeScreen} />
-            <Tab.Screen name="Events" component={CommitteeEventsScreen} />
-            <Tab.Screen name="News" component={CommitteeNewsScreen} />
+            <Tab.Screen name="Dash" component={CommitteeHomeScreen} options={{ tabBarLabel: 'home' }} />
+            <Tab.Screen name="Events" component={CommitteeEventsScreen} options={{ tabBarLabel: 'events' }} />
+            <Tab.Screen name="News" component={CommitteeNewsScreen} options={{ tabBarLabel: 'news' }} />
         </Tab.Navigator>
     );
 }
@@ -59,7 +64,7 @@ export default function CommitteeStackNavigator() {
             <Stack.Screen name="MainTabs" component={CommitteeTabNavigator} />
 
             {/* Hidden screen (NOT in tab bar) */}
-            <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+            <Stack.Screen name="CreateEditEvent" component={CreateEditEventScreen} />
             <Stack.Screen name="CommitteeNotification" component={NotificationScreen} />
 
         </Stack.Navigator>
@@ -67,13 +72,13 @@ export default function CommitteeStackNavigator() {
 }
 
 const styles = StyleSheet.create({
-    activeIconContainer: {
-        backgroundColor: "rgba(255, 255, 255, 0.15)",
-        width: 45,
-        height: 45,
-        borderRadius: 25,
+    activeIconWrap: {
+        backgroundColor: "rgba(194, 186, 255, 0.2)",
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 5,
+        marginBottom: 0,
     },
 });
