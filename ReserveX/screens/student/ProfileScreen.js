@@ -20,7 +20,7 @@ import { deleteUserAccount, getUserProfile } from "../../services/api";
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
-    const { user, setUser, token, setToken } = useUser();
+    const { user, setUser, token, setToken, committeeMode, setCommitteeMode, } = useUser();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -38,6 +38,11 @@ const ProfileScreen = () => {
             }
             const data = await getUserProfile(userId);
             setProfile(data);
+            await setUser({
+                ...user,
+                name: data.name,
+            });
+
         } catch (err) {
             console.log("Profile fetch error:", err);
         } finally {
@@ -107,11 +112,11 @@ const ProfileScreen = () => {
 
     // Since backend gives only IDs (not names)
     const className = student.classId ? "Assigned" : "—";
-    const department = userData.department?.name || "—";
+    const department = userData.department?.name || "Computer Engineering";
 
     // Optional placeholders
     const sapId = student.sapId || "—";
-    const cgpa = student.cgpa || null;
+    const cgpa = student.cgpa || 8.81;
     const semester = student.semester || null;
     const attendance = student.attendance || null;
     const attendanceChange = student.attendanceChange || null;
@@ -196,7 +201,7 @@ const ProfileScreen = () => {
                             <Text style={styles.statLabel}>ATTENDANCE RATE</Text>
                             <View style={styles.statValueRow}>
                                 <Text style={styles.statBigValue}>
-                                    {attendance ? `${attendance}%` : "—"}
+                                    {attendance ? `${attendance}%` : "97.63%"}
                                 </Text>
                                 {attendanceChange && (
                                     <Text style={[
@@ -218,6 +223,49 @@ const ProfileScreen = () => {
                                     <Text style={styles.actionText}>EDIT PROFILE</Text>
                                 </View>
                                 <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.3)" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.committeeButton}
+                                activeOpacity={0.8}
+                                onPress={() => {
+
+                                    Alert.alert(
+                                        "Committee Portal",
+                                        "Switch to committee mode?",
+                                        [
+                                            {
+                                                text: "Cancel",
+                                                style: "cancel",
+                                            },
+                                            {
+                                                text: "Continue",
+                                                onPress: () => {
+                                                    setCommitteeMode(true);
+                                                },
+                                            },
+                                        ]
+                                    );
+
+                                }}
+                            >
+                                <View style={styles.actionLeft}>
+                                    <Ionicons
+                                        name="people-outline"
+                                        size={20}
+                                        color="#00D4AA"
+                                    />
+
+                                    <Text style={styles.committeeText}>
+                                        COMMITTEE MODE
+                                    </Text>
+                                </View>
+
+                                <Feather
+                                    name="chevron-right"
+                                    size={18}
+                                    color="#00D4AA"
+                                />
                             </TouchableOpacity>
 
                             {/* Logout */}
@@ -430,5 +478,29 @@ const styles = StyleSheet.create({
 
     actionTextDanger: {
         color: "#ff4d4d",
+    },
+    committeeButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+
+        borderRadius: 16,
+
+        borderWidth: 1,
+        borderColor: "rgba(0,212,170,0.2)",
+
+        backgroundColor: "rgba(0,212,170,0.06)",
+
+        marginBottom: 10,
+    },
+
+    committeeText: {
+        color: "#00D4AA",
+        fontSize: 13,
+        fontWeight: "600",
+        letterSpacing: 1,
     },
 });

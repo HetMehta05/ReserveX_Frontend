@@ -8,6 +8,7 @@ export const STORAGE_KEY = "auth_user";
 export const UserProvider = ({ children }) => {
     const [user, setUserState] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [committeeMode, setCommitteeMode] = useState(false);
 
     const isAuthenticated = !!user?.token;
 
@@ -43,6 +44,7 @@ export const UserProvider = ({ children }) => {
                 email: userData.email,
                 role: userData.role,
                 token: userData.token,
+                name: userData.name,
             };
 
             setUserState(cleanUser);
@@ -70,6 +72,10 @@ export const UserProvider = ({ children }) => {
                 logout,
                 loading,
                 setLoading,
+
+                committeeMode,
+                setCommitteeMode,
+
                 isAuthenticated,
             }}
         >

@@ -23,7 +23,7 @@ const Stack = createNativeStackNavigator();
 
 // 🔹 App Navigator
 function AppNavigator() {
-  const { user, loading, setLoading, setUser } = useUser();
+  const { user, loading, setLoading, setUser, committeeMode } = useUser();
 
   // Restore session on app start
   useEffect(() => {
@@ -59,7 +59,7 @@ function AppNavigator() {
             <Stack.Screen name="AuthScreen" component={AuthScreen} />
             <Stack.Screen name="Login_Committee" component={LoginScreenCommittee} />
           </>
-        ) : user.role === "committee" ? (
+        ) : committeeMode ? (
           <Stack.Screen
             name="Committee_Main"
             component={CommitteeTabNavigator}

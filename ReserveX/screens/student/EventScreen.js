@@ -169,7 +169,9 @@ export default function EventsScreen() {
         <AppBackgroundStudents>
             <View style={styles.container}>
                 {/* Header */}
-                <Header currentScreen="Events" />
+                <View style={{ padding: 20 }}>
+                    <Header currentScreen="Events" />
+                </View>
 
                 {/* Section Label */}
                 <Text style={styles.sectionLabel}>CAMPUS BUZZ</Text>
@@ -392,7 +394,7 @@ function AnimatedEventCard({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 40,
+        paddingTop: 20,
         backgroundColor: "transparent",
     },
 

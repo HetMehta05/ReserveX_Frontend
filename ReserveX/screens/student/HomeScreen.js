@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, TextInput, ScrollView, TouchableOpacity, RefreshControl, } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Toast from "react-native-toast-message";
@@ -10,16 +10,21 @@ import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
 import Header from "../../components/Header";
 
 
+
 export default function HomeScreen() {
     const { user, loading } = useUser();
     const token = user?.token;
 
+
     const [availableRooms, setAvailableRooms] = useState([]);
     const [currentLecture, setCurrentLecture] = useState(null);
     const [nextLecture, setNextLecture] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
     const hasCurrent = !!currentLecture;
     const hasNext = !!nextLecture;
     const hasAnyLecture = hasCurrent || hasNext;
+    const userName =
+        user?.name?.trim()?.split(/\s+/)?.[0]?.slice(0, 12) || "Student";
 
     const getCurrentDateTime = () => {
         const now = new Date();
@@ -150,11 +155,28 @@ export default function HomeScreen() {
         setNextLecture(next);
     };
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await loadTimetable();
+        setRefreshing(false);
+    };
+
     return (
         <AppBackgroundStudents>
-            <ScrollView contentContainerStyle={styles.container}>
+            <ScrollView
+                contentContainerStyle={styles.container}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#C281FF"
+                        colors={["#C281FF"]}
+                    />
+                }>
 
-                <Header />
+                <View style={{ paddingTop: 20 }}>
+                    <Header />
+                </View>
 
                 {/* SEARCH BAR */}
                 <LinearGradient
@@ -177,7 +199,7 @@ export default function HomeScreen() {
 
                 {/* GREETING */}
                 <Text style={styles.greeting}>
-                    <Text style={styles.name}>Hello, Prisha</Text>
+                    <Text style={styles.name}>Hello, {userName}</Text>
                 </Text>
 
                 {/* CURRENT LECTURE */}
