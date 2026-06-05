@@ -18,6 +18,7 @@ import CommitteeTabNavigator from "./navigation/CommitteeNavigator";
 // Context
 import { UserProvider, useUser } from "./context/UserContext";
 import AuthScreen from "./screens/auth/AuthScreen";
+import CommitteeRootNavigator from "./navigation/CommitteeRootNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -62,7 +63,7 @@ function AppNavigator() {
         ) : committeeMode ? (
           <Stack.Screen
             name="Committee_Main"
-            component={CommitteeTabNavigator}
+            component={CommitteeRootNavigator}
           />
         ) : (
           <Stack.Screen

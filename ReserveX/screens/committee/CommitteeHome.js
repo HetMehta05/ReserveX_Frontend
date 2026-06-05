@@ -9,20 +9,14 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AppBackgroundCommittee from '../../layouts/AppBackgroundCommittee';
+import Header from '../../components/Header';
 
 const HomeScreen = () => {
     return (
         <AppBackgroundCommittee>
             <ScrollView contentContainerStyle={styles.container}>
 
-                {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.logo}>ReserveX</Text>
-                    <View style={styles.headerIcons}>
-                        <Ionicons name="notifications-outline" size={22} color="#fff" />
-                        <Ionicons name="person-outline" size={22} color="#fff" style={{ marginLeft: 15 }} />
-                    </View>
-                </View>
+                <Header />
 
                 {/* Search */}
                 <View style={styles.searchBar}>
@@ -93,21 +87,32 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
     container: {
-        padding: 20,
+        padding: 10,
         paddingBottom: 100,
-        marginTop: 20,
+        marginTop: 30,
     },
 
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingHorizontal: 20,
+        marginBottom: 40
     },
 
     logo: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 22,
+        color: '#E0E0E0',
+        fontWeight: 'bold',
+        letterSpacing: 1
+    },
+
+    headerIcons: {
+        flexDirection: 'row'
+    },
+
+    iconButton: {
+        marginLeft: 15
     },
 
     headerIcons: {

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import CommitteeBackground from "../../layouts/AppBackgroundCommittee";
+import Header from '../../components/Header';
 
 export default function CommitteeNewsScreen() {
     const navigation = useNavigation();
@@ -55,16 +56,8 @@ export default function CommitteeNewsScreen() {
             <View style={styles.container}>
 
                 {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.logo}>ReserveX</Text>
-                    <View style={styles.headerIcons}>
-                        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate("CommitteeNotification")}>
-                            <Ionicons name="notifications" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Ionicons name="person" size={24} color="#fff" />
-                        </TouchableOpacity>
-                    </View>
+                <View style={{ paddingHorizontal: 10 }}>
+                    <Header />
                 </View>
 
                 <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -122,7 +115,7 @@ export default function CommitteeNewsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50
+        paddingTop: 15,
     },
 
     header: {
