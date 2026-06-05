@@ -23,7 +23,7 @@ import Logo from "../../assets/ReserveX.svg";
 
 export default function LoginScreen({ switchToSignup }) {
     const navigation = useNavigation();
-    const { setUser } = useUser();
+    const { setUser, setCommitteeMode } = useUser();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -114,9 +114,10 @@ export default function LoginScreen({ switchToSignup }) {
             setUser({
                 id: userData.id,
                 email: userData.email,
-                role: 'student',
+                role: userData.role, // ✅ FIXED
                 token: token,
             });
+            setCommitteeMode(false);
 
             Toast.show({
                 type: 'success',
