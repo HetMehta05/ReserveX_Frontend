@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Platform,
@@ -12,15 +11,29 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {
+    useSharedValue,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    interpolate,
+    Extrapolation,
+} from "react-native-reanimated";
 import AppBackgroundCommittee from '../../../layouts/AppBackgroundCommittee';
 import Header from '../../../components/Header';
 
-// ── Change to your server address ─────────────────────────
-const BASE_URL = 'http://localhost:3000/api';
+// ── Shared metrics ──
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = width * 0.82;
+const CARD_SPACING = 16;
+const SIDE_PADDING = (width - CARD_WIDTH) / 2;
+
+// ── Change to your server address ──
+const BASE_URL = 'https://reservex.onrender.com/api';
 
 // ── API helpers ───────────────────────────────────────────
 
@@ -53,68 +66,76 @@ const registerForEvent = async (eventId, token) => {
 
 // ─────────────────────────────────────────────────────────
 
-function EventCard({ event, onEdit, onDelete, onRegister, onViewAnnouncements }) {
+function AnimatedEventCard({ event, index, scrollX, onEdit, onDelete }) {
+    const animatedStyle = useAnimatedStyle(() => {
+        const inputRange = [
+            (index - 1) * (CARD_WIDTH + CARD_SPACING),
+            index * (CARD_WIDTH + CARD_SPACING),
+            (index + 1) * (CARD_WIDTH + CARD_SPACING),
+        ];
+        const scale = interpolate(scrollX.value, inputRange, [0.88, 1, 0.88], Extrapolation.CLAMP);
+        const rotateY = interpolate(scrollX.value, inputRange, [8, 0, -8], Extrapolation.CLAMP);
+        const opacity = interpolate(scrollX.value, inputRange, [0.6, 1, 0.6], Extrapolation.CLAMP);
+        const translateY = interpolate(scrollX.value, inputRange, [15, 0, 15], Extrapolation.CLAMP);
+
+        return {
+            transform: [{ perspective: 1200 }, { scale }, { rotateY: `${rotateY}deg` }, { translateY }],
+            opacity,
+        };
+    });
+
   return (
-    <View style={styles.card}>
-      {event.imageUrl ? (
-        <Image source={{ uri: event.imageUrl }} style={styles.cardImage} resizeMode="cover" />
-      ) : (
-        <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
-          <Ionicons name="image-outline" size={36} color="rgba(160,212,200,0.3)" />
-        </View>
-      )}
-
-      <View style={styles.cardBody}>
-        <Text style={styles.cardTitle}>{event.title}</Text>
-        <Text style={styles.cardOrganizer}>{event.organizer || 'BY DJSCE UNICODE'}</Text>
-        <Text style={styles.cardDescription} numberOfLines={3}>{event.description}</Text>
-
-        <View style={styles.metaRow}>
-          <Ionicons name="time-outline" size={14} color="#a0d4c8" />
-          <View style={styles.metaGroup}>
-            <View style={styles.metaTexts}>
-              <Text style={styles.metaLabel}>DATE</Text>
-              <Text style={styles.metaValue}>{event.date}</Text>
+    <Animated.View style={[styles.cardOuter, animatedStyle]}>
+        <View style={styles.card}>
+        {event.imageUrl ? (
+            <Image source={{ uri: event.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+        ) : (
+            <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+              <MaterialCommunityIcons name="calendar-star" size={50} color="rgba(160,212,200,0.3)" />
             </View>
-            <View style={styles.metaTexts}>
-              <Text style={styles.metaLabel}>TIME</Text>
-              <Text style={styles.metaValue}>{event.time}</Text>
+        )}
+
+        <View style={styles.cardBody}>
+            <Text style={styles.cardTitle} numberOfLines={1}>{event.title}</Text>
+            <Text style={styles.cardOrganizer}>{event.organizer || 'BY DJSCE UNICODE'}</Text>
+            <Text style={styles.cardDescription} numberOfLines={2}>{event.description}</Text>
+
+            <View style={styles.timeDateRow}>
+            <View style={styles.metaBlock}>
+                <Ionicons name="time-outline" size={22} color="#67DCE6" style={styles.metaIcon} />
+                <View>
+                <Text style={styles.metaLabel}>DATE</Text>
+                <Text style={styles.metaValue}>{event.date || 'TBA'}</Text>
+                </View>
             </View>
-          </View>
+            <View style={styles.metaBlock}>
+                <Ionicons name="time-outline" size={22} color="#67DCE6" style={styles.metaIcon} />
+                <View>
+                <Text style={styles.metaLabel}>TIME</Text>
+                <Text style={styles.metaValue}>{event.time || 'TBA'}</Text>
+                </View>
+            </View>
+            </View>
+
+            <View style={[styles.metaBlock, { marginBottom: 12 }]}>
+            <Ionicons name="location-outline" size={22} color="#67DCE6" style={styles.metaIcon} />
+            <View>
+                <Text style={styles.metaLabel}>VENUE</Text>
+                <Text style={styles.metaValue}>{event.venue || 'TBA'}</Text>
+            </View>
+            </View>
+
+            <View style={styles.cardActions}>
+            <TouchableOpacity style={styles.editBtn} onPress={() => onEdit(event)} activeOpacity={0.8}>
+                <Text style={styles.editBtnText}>EDIT EVENT</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(event._id)} activeOpacity={0.8}>
+                <Text style={styles.deleteBtnText}>DELETE</Text>
+            </TouchableOpacity>
+            </View>
         </View>
-
-        <View style={styles.metaRow}>
-          <Ionicons name="location-outline" size={14} color="#a0d4c8" />
-          <View style={styles.metaTexts}>
-            <Text style={styles.metaLabel}>VENUE</Text>
-            <Text style={styles.metaValue}>{event.venue}</Text>
-          </View>
         </View>
-
-        {/* Announcements link */}
-        <TouchableOpacity
-          style={styles.announcementsBtn}
-          onPress={() => onViewAnnouncements(event._id)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="megaphone-outline" size={13} color="#a0d4c8" />
-          <Text style={styles.announcementsBtnText}>View Announcements</Text>
-        </TouchableOpacity>
-
-        <View style={styles.cardActions}>
-          <TouchableOpacity style={styles.editBtn} onPress={() => onEdit(event)} activeOpacity={0.8}>
-            <Text style={styles.editBtnText}>EDIT EVENT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(event._id)} activeOpacity={0.8}>
-            <Text style={styles.deleteBtnText}>DELETE</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.registerBtn} onPress={() => onRegister(event._id)} activeOpacity={0.8}>
-          <Text style={styles.registerBtnText}>REGISTER</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -144,7 +165,7 @@ export default function MyEventsScreen({ navigation }) {
   }, [loadEvents]);
 
   const handleEdit = (event) => {
-    navigation?.navigate('CreateEditEvent', { event });
+    navigation?.navigate('CreateEvent', { event });
   };
 
   const handleDelete = (id) => {
@@ -158,54 +179,39 @@ export default function MyEventsScreen({ navigation }) {
     ]);
   };
 
-  // POST /:eventId/register
-  const handleRegister = async (eventId) => {
-    try {
-      const token = await AsyncStorage.getItem('authToken');
-      const data = await registerForEvent(eventId, token);
-      Alert.alert('Success', data.message || 'Registered successfully!');
-    } catch (err) {
-      Alert.alert('Error', err.message || 'Registration failed.');
-    }
-  };
-
-  // GET /:eventId/announcements
-  const handleViewAnnouncements = async (eventId) => {
-    try {
-      const data = await fetchAnnouncements(eventId);
-      navigation?.navigate('Announcements', { announcements: data, eventId });
-    } catch (err) {
-      Alert.alert('Error', err.message || 'Could not load announcements.');
-    }
-  };
+  const scrollX = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+      onScroll: (event) => {
+          scrollX.value = event.contentOffset.x;
+      },
+  });
 
   const handleAddEvent = () => {
-    navigation?.navigate('CreateEditEvent', { event: null });
+    navigation?.navigate('CreateEvent', { event: null });
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a1a2e" />
-
       <AppBackgroundCommittee>
-        {/* ── Navbar ── */}
-        <View style={{ padding: 10 }}>
-          <Header />
-        </View>
-
-        {/* ── Page Header ── */}
-        <View style={styles.pageHeader}>
-          <View>
-            <Text style={styles.pageSubtitle}>DJSCE UNICODE</Text>
-            <Text style={styles.pageTitle}>My Events</Text>
+        <StatusBar barStyle="light-content" backgroundColor="#0a1a2e" />
+        <ScrollView contentContainerStyle={{ paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+          {/* ── Navbar ── */}
+          <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
+            <Header />
           </View>
-          <TouchableOpacity style={styles.addBtn} onPress={handleAddEvent} activeOpacity={0.8}>
-            <Ionicons name="add" size={26} color="#fff" />
-          </TouchableOpacity>
-        </View>
 
-        {/* ── Content ── */}
-        {loading ? (
+          {/* ── Page Header ── */}
+          <View style={styles.pageHeader}>
+            <View>
+              <Text style={styles.pageSubtitle}>DJSCE UNICODE</Text>
+              <Text style={styles.pageTitle}>My Events</Text>
+            </View>
+            <TouchableOpacity style={styles.addBtn} onPress={handleAddEvent} activeOpacity={0.8}>
+              <Ionicons name="add" size={26} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* ── Content ── */}
+          {loading ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color="#0e9e85" />
             <Text style={styles.loadingText}>Loading events...</Text>
@@ -219,50 +225,48 @@ export default function MyEventsScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         ) : (
-          <FlatList
-            data={events}
-            keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <EventCard
-                event={item}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onRegister={handleRegister}
-                onViewAnnouncements={handleViewAnnouncements}
-              />
-            )}
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
+          <View style={{ marginTop: 10 }}>
+            {events.length === 0 ? (
+                <View style={styles.emptyState}>
                 <Ionicons name="calendar-outline" size={48} color="rgba(160,212,200,0.3)" />
                 <Text style={styles.emptyText}>No events yet</Text>
                 <Text style={styles.emptySubText}>Tap + to create your first event</Text>
               </View>
-            }
-          />
+            ) : (
+                <Animated.FlatList
+                    data={events}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(item) => item._id?.toString() || item.id?.toString()}
+                    snapToInterval={CARD_WIDTH + CARD_SPACING}
+                    decelerationRate="fast"
+                    bounces={false}
+                    contentContainerStyle={{
+                        paddingHorizontal: SIDE_PADDING,
+                        paddingBottom: 20,
+                    }}
+                    onScroll={scrollHandler}
+                    scrollEventThrottle={16}
+                    ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
+                    renderItem={({ item, index }) => (
+                        <AnimatedEventCard
+                            event={item}
+                            index={index}
+                            scrollX={scrollX}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
+                    )}
+                />
+            )}
+          </View>
         )}
-
-        {/* ── Bottom Tab Bar ── */}
-        <LinearGradient colors={['#0d0d2e', '#1a0a40']} style={styles.tabBar}>
-          {[
-            { key: 'dash', label: 'dash', icon: <Ionicons name="home-outline" size={22} color={activeTab === 'dash' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-            { key: 'events', label: 'events', icon: <MaterialIcons name="event" size={22} color={activeTab === 'events' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-            { key: 'news', label: 'news', icon: <MaterialIcons name="article" size={22} color={activeTab === 'news' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-          ].map(({ key, label, icon }) => (
-            <TouchableOpacity key={key} style={styles.tabItem} onPress={() => setActiveTab(key)} activeOpacity={0.7}>
-              <View style={[styles.tabIconWrap, activeTab === key && styles.tabIconWrapActive]}>{icon}</View>
-              <Text style={[styles.tabLabel, activeTab === key && styles.tabLabelActive]}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </LinearGradient>
+        </ScrollView>
       </AppBackgroundCommittee>
-    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0a1f3a' },
   gradient: { flex: 1 },
 
   navbar: {
@@ -298,68 +302,54 @@ const styles = StyleSheet.create({
     shadowColor: '#0e9e85', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8, elevation: 6,
   },
 
+  cardOuter: {
+    width: CARD_WIDTH,
+  },
+
   listContent: { paddingHorizontal: 16, paddingBottom: 12 },
 
   card: {
-    backgroundColor: 'rgba(10,30,50,0.85)', borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(160,212,200,0.15)', overflow: 'hidden', marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
+    backgroundColor: '#1C1635', borderRadius: 22,
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.05)",
+    overflow: 'hidden',
   },
-  cardImage: { width: '100%', height: 160 },
+  cardImage: { width: '100%', height: 130 },
   cardImagePlaceholder: { backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center' },
   cardBody: { padding: 16 },
   cardTitle: {
-    color: '#e0f5ef', fontSize: 22, fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', marginBottom: 2,
+    color: '#fff', fontSize: 22, fontWeight: 'bold',
+    marginBottom: 4,
   },
   cardOrganizer: {
-    color: 'rgba(160,212,200,0.6)', fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5, marginBottom: 10,
+    color: '#67DCE6', fontSize: 12,
+    letterSpacing: 0.5, marginBottom: 8,
   },
   cardDescription: {
-    color: 'rgba(220,240,235,0.75)', fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', lineHeight: 20, marginBottom: 14,
+    color: '#d0d0d0', fontSize: 13,
+    lineHeight: 20, marginBottom: 14,
   },
 
-  metaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
-  metaGroup: { flexDirection: 'row', gap: 20 },
-  metaTexts: { marginRight: 4 },
+  timeDateRow: { flexDirection: 'row', gap: 30, marginBottom: 12 },
+  metaBlock: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  metaIcon: { marginRight: 12, backgroundColor: 'rgba(255,255,255,0.05)', padding: 6, borderRadius: 20 },
   metaLabel: {
-    color: 'rgba(160,212,200,0.55)', fontSize: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 1, marginBottom: 1,
+    color: '#888', fontSize: 11,
+    letterSpacing: 1, marginBottom: 2,
   },
   metaValue: {
-    color: '#e0f5ef', fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
+    color: '#fff', fontSize: 13, fontWeight: '600'
   },
 
-  announcementsBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    marginBottom: 14, paddingVertical: 6,
-  },
-  announcementsBtnText: {
-    color: '#a0d4c8', fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5,
-  },
-
-  cardActions: { flexDirection: 'row', gap: 12, marginBottom: 10 },
-  editBtn: { flex: 1, backgroundColor: '#0e9e85', borderRadius: 8, paddingVertical: 11, alignItems: 'center' },
+  cardActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  editBtn: { flex: 1, backgroundColor: '#67DCE6', borderRadius: 25, paddingVertical: 10, alignItems: 'center' },
   editBtnText: {
-    color: '#fff', fontSize: 13, fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5,
+    color: '#0B132F', fontSize: 12, fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
-  deleteBtn: { flex: 1, backgroundColor: '#e03e3e', borderRadius: 8, paddingVertical: 11, alignItems: 'center' },
+  deleteBtn: { flex: 1, backgroundColor: '#FF1717', borderRadius: 25, paddingVertical: 10, alignItems: 'center' },
   deleteBtnText: {
-    color: '#fff', fontSize: 13, fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5,
-  },
-  registerBtn: {
-    backgroundColor: 'rgba(14,158,133,0.15)', borderRadius: 8, paddingVertical: 11,
-    alignItems: 'center', borderWidth: 1, borderColor: 'rgba(14,158,133,0.5)',
-  },
-  registerBtnText: {
-    color: '#0e9e85', fontSize: 13, fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5,
+    color: '#fff', fontSize: 12, fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
@@ -372,13 +362,5 @@ const styles = StyleSheet.create({
   emptyText: { color: 'rgba(160,212,200,0.5)', fontSize: 18, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
   emptySubText: { color: 'rgba(160,212,200,0.35)', fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
 
-  tabBar: {
-    flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(120,80,220,0.3)',
-    paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 24 : 12, paddingHorizontal: 10,
-  },
-  tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  tabIconWrap: { padding: 5, borderRadius: 8 },
-  tabIconWrapActive: { backgroundColor: 'rgba(124,58,237,0.2)' },
-  tabLabel: { color: 'rgba(190,190,230,0.5)', fontSize: 11, marginTop: 3, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5 },
-  tabLabelActive: { color: '#c0b0ff' },
+    // Removed manual tab bar styles
 });

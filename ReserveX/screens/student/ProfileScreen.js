@@ -220,7 +220,11 @@ const ProfileScreen = () => {
                         {/* ═══ Action Buttons ═══ */}
                         <View style={styles.actionsSection}>
                             {/* Edit Profile */}
-                            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                            <TouchableOpacity 
+                                style={styles.actionButton} 
+                                activeOpacity={0.7}
+                                onPress={() => navigation.navigate("EditProfile")}
+                            >
                                 <View style={styles.actionLeft}>
                                     <Feather name="edit" size={18} color="#fff" />
                                     <Text style={styles.actionText}>EDIT PROFILE</Text>

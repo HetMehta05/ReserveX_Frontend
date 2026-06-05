@@ -4,7 +4,6 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    SafeAreaView,
     StatusBar,
     StyleSheet,
     Platform,
@@ -18,7 +17,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ── Change to your server address ─────────────────────────
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://reservex.onrender.com/api';
 
 // ── API helpers ───────────────────────────────────────────
 
@@ -141,19 +140,20 @@ export default function CreateEditEventScreen({ navigation, route }) {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <LinearGradient
+            colors={['#0a1f3a', '#0a2a2a', '#060f1a', '#000000']}
+            locations={[0, 0.4, 0.7, 1]}
+            style={styles.gradient}
+        >
             <StatusBar barStyle="light-content" backgroundColor="#0a1f3a" />
-
-            <LinearGradient
-                colors={['#0a1f3a', '#0a2a2a', '#060f1a', '#000000']}
-                locations={[0, 0.4, 0.7, 1]}
-                style={styles.gradient}
-            >
                 {/* ── Navbar ── */}
                 <View style={styles.navbar}>
                     <Text style={styles.brand}>ReserveX</Text>
                     <View style={styles.navRight}>
-                        <TouchableOpacity style={styles.bellBtn}>
+                        <TouchableOpacity 
+                            style={styles.bellBtn}
+                            onPress={() => navigation?.navigate('Notifications')}
+                        >
                             <Ionicons name="notifications-outline" size={22} color="#c8ede4" />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.avatarBtn}>
@@ -320,26 +320,11 @@ export default function CreateEditEventScreen({ navigation, route }) {
                     </ScrollView>
                 </KeyboardAvoidingView>
 
-                {/* ── Bottom Tab Bar ── */}
-                <LinearGradient colors={['#0d0d2e', '#1a0a40']} style={styles.tabBar}>
-                    {[
-                        { key: 'dash', label: 'dash', icon: <Ionicons name="home-outline" size={22} color={activeTab === 'dash' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-                        { key: 'events', label: 'events', icon: <MaterialIcons name="event" size={22} color={activeTab === 'events' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-                        { key: 'news', label: 'news', icon: <MaterialIcons name="article" size={22} color={activeTab === 'news' ? '#c0b0ff' : 'rgba(190,190,230,0.55)'} /> },
-                    ].map(({ key, label, icon }) => (
-                        <TouchableOpacity key={key} style={styles.tabItem} onPress={() => setActiveTab(key)} activeOpacity={0.7}>
-                            <View style={[styles.tabIconWrap, activeTab === key && styles.tabIconWrapActive]}>{icon}</View>
-                            <Text style={[styles.tabLabel, activeTab === key && styles.tabLabelActive]}>{label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </LinearGradient>
-            </LinearGradient>
-        </SafeAreaView>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#0a1f3a' },
     gradient: { flex: 1 },
     flex: { flex: 1 },
     scrollContent: { paddingHorizontal: 20, paddingBottom: 10 },
@@ -353,36 +338,28 @@ const styles = StyleSheet.create({
     bellBtn: { width: 38, height: 38, borderRadius: 19, justifyContent: 'center', alignItems: 'center' },
     avatarBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)' },
 
-    pageSubtitle: { color: 'rgba(160,212,200,0.7)', fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 1.5, marginBottom: 4, marginTop: 8 },
-    pageTitle: { color: '#e0f5ef', fontSize: 26, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.3, marginBottom: 20 },
+    pageSubtitle: { color: '#67DCE6', fontSize: 12, letterSpacing: 1.5, marginBottom: 4, marginTop: 8, fontWeight: '700' },
+    pageTitle: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginBottom: 25 },
 
-    fieldLabel: { color: 'rgba(160,212,200,0.8)', fontSize: 11, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 1.5, marginBottom: 6 },
+    fieldLabel: { color: '#67DCE6', fontSize: 13, fontWeight: '700', letterSpacing: 1, marginBottom: 8 },
 
-    inputBox: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(160,212,200,0.15)', paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 14 : 6, marginBottom: 18 },
-    input: { color: '#e0f5ef', fontSize: 14, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
-    textAreaBox: { paddingVertical: Platform.OS === 'ios' ? 12 : 8 },
-    textArea: { height: 90, textAlignVertical: 'top' },
+    inputBox: { backgroundColor: 'rgba(53, 94, 99, 0.65)', borderRadius: 16, paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 16 : 10, marginBottom: 22 },
+    input: { color: '#fff', fontSize: 15 },
+    textAreaBox: { paddingVertical: Platform.OS === 'ios' ? 14 : 10 },
+    textArea: { height: 110, textAlignVertical: 'top' },
 
-    tagsBox: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(160,212,200,0.15)', padding: 10, marginBottom: 18 },
-    tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, minHeight: 36 },
-    tag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0e9e85', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
-    tagText: { color: '#fff', fontSize: 12, fontWeight: '600', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
-    tagInput: { color: '#e0f5ef', fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', minWidth: 80, flex: 1, paddingVertical: 2 },
-    suggestedWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(160,212,200,0.1)' },
-    suggestedTag: { backgroundColor: 'rgba(14,158,133,0.2)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(14,158,133,0.4)' },
-    suggestedTagText: { color: 'rgba(160,212,200,0.8)', fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
+    tagsBox: { backgroundColor: 'rgba(53, 94, 99, 0.65)', borderRadius: 16, padding: 14, marginBottom: 22 },
+    tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, minHeight: 40 },
+    tag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#314154', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+    tagText: { color: '#67DCE6', fontSize: 12, fontWeight: '600' },
+    tagInput: { color: '#fff', fontSize: 14, minWidth: 80, flex: 1, paddingVertical: 2 },
+    suggestedWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+    suggestedTag: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+    suggestedTagText: { color: '#ccc', fontSize: 12 },
 
-    regFormBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: 'rgba(160,212,200,0.07)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(160,212,200,0.15)' },
-    regFormBtnText: { color: '#a0d4c8', fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
-
-    finishBtn: { marginTop: 8, alignSelf: 'center', borderRadius: 30, borderWidth: 1.5, borderColor: '#0e9e85', paddingVertical: 12, paddingHorizontal: 48, minWidth: 140, alignItems: 'center' },
+    finishBtn: { marginTop: 15, alignSelf: 'center', borderRadius: 30, backgroundColor: '#67DCE6', paddingVertical: 14, paddingHorizontal: 40, minWidth: 160, alignItems: 'center' },
     finishBtnDisabled: { opacity: 0.5 },
-    finishBtnText: { color: '#0e9e85', fontSize: 14, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 1.5 },
+    finishBtnText: { color: '#0B132F', fontSize: 14, fontWeight: 'bold', letterSpacing: 1.0 },
 
-    tabBar: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(120,80,220,0.3)', paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 24 : 12, paddingHorizontal: 10 },
-    tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    tabIconWrap: { padding: 5, borderRadius: 8 },
-    tabIconWrapActive: { backgroundColor: 'rgba(124,58,237,0.2)' },
-    tabLabel: { color: 'rgba(190,190,230,0.5)', fontSize: 11, marginTop: 3, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', letterSpacing: 0.5 },
-    tabLabelActive: { color: '#c0b0ff' },
+    // removed manual tabs
 });

@@ -252,7 +252,7 @@ export const createBooking = async (bookingData) => {
 
 export const getMyBookings = async () => {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${BASE_URL}/bookings`, { headers });
+    const response = await fetch(`${BASE_URL}/bookings/me`, { headers });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Failed to fetch bookings");
     return data;

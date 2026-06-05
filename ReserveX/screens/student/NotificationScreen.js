@@ -12,6 +12,7 @@ import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 
 import AppBackgroundStudents from "../../layouts/AppBackgroundStudents";
+import AppBackgroundCommittee from "../../layouts/AppBackgroundCommittee";
 import Header from "../../components/Header";
 import { useUser } from "../../context/UserContext";
 import {
@@ -111,7 +112,9 @@ function getNotificationStyle(notification) {
 //  NOTIFICATION SCREEN
 // ═══════════════════════════════════════════
 const NotificationScreen = () => {
-    const { token } = useUser();
+    const { token, committeeMode } = useUser();
+    const Background = committeeMode ? AppBackgroundCommittee : AppBackgroundStudents;
+    const accentColor = committeeMode ? "#0e9e85" : "#C281FF";
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -198,17 +201,17 @@ const NotificationScreen = () => {
     // ─── Render ───
     if (loading) {
         return (
-            <AppBackgroundStudents>
+            <Background>
                 <View style={[styles.container, { justifyContent: "center", alignItems: "center", flex: 1 }]}>
-                    <ActivityIndicator size="large" color="#C281FF" />
+                    <ActivityIndicator size="large" color={accentColor} />
                     <Text style={styles.loadingText}>Loading notifications...</Text>
                 </View>
-            </AppBackgroundStudents>
+            </Background>
         );
     }
 
     return (
-        <AppBackgroundStudents>
+        <Background>
             <View style={styles.container}>
                 <Header currentScreen="Notifications" />
 
@@ -232,8 +235,8 @@ const NotificationScreen = () => {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            tintColor="#C281FF"
-                            colors={["#C281FF"]}
+                            tintColor={accentColor}
+                            colors={[accentColor]}
                         />
                     }
                 >
@@ -256,7 +259,7 @@ const NotificationScreen = () => {
                                             style={styles.markAllBtn}
                                         >
                                             {markingAll ? (
-                                                <ActivityIndicator size="small" color="#C281FF" />
+                                                <ActivityIndicator size="small" color={accentColor} />
                                             ) : (
                                                 <Text style={[
                                                     styles.markAllText,
@@ -290,7 +293,7 @@ const NotificationScreen = () => {
                                                 style={styles.markAllBtn}
                                             >
                                                 {markingAll ? (
-                                                    <ActivityIndicator size="small" color="#C281FF" />
+                                                    <ActivityIndicator size="small" color={accentColor} />
                                                 ) : (
                                                     <Text style={[
                                                         styles.markAllText,
@@ -316,7 +319,7 @@ const NotificationScreen = () => {
                     )}
                 </ScrollView>
             </View>
-        </AppBackgroundStudents>
+        </Background>
     );
 };
 

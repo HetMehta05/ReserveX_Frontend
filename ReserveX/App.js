@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
@@ -21,6 +21,14 @@ import AuthScreen from "./screens/auth/AuthScreen";
 import CommitteeRootNavigator from "./navigation/CommitteeRootNavigator";
 
 const Stack = createNativeStackNavigator();
+
+const DarkTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: '#0a1a2e',
+  },
+};
 
 // 🔹 App Navigator
 function AppNavigator() {
@@ -52,7 +60,7 @@ function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={DarkTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user?.token ? (
           <>

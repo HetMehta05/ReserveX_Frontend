@@ -60,7 +60,7 @@ export default function CommitteeStackNavigator() {
 
             {/* Hidden screen (NOT in tab bar) */}
             <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
-            <Stack.Screen name="CommitteeNotification" component={NotificationScreen} />
+            <Stack.Screen name="Notifications" component={NotificationScreen} />
 
         </Stack.Navigator>
     );

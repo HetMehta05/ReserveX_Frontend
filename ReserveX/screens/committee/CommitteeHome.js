@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,8 +10,27 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AppBackgroundCommittee from '../../layouts/AppBackgroundCommittee';
 import Header from '../../components/Header';
+import { getAllEvents } from '../../services/api';
+import { ActivityIndicator, Image } from 'react-native';
 
 const HomeScreen = () => {
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadEvents = async () => {
+            try {
+                const data = await getAllEvents();
+                setEvents(Array.isArray(data) ? data : data.events || []);
+            } catch (error) {
+                console.log("Error fetching events:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadEvents();
+    }, []);
+
     return (
         <AppBackgroundCommittee>
             <ScrollView contentContainerStyle={styles.container}>
@@ -72,11 +91,27 @@ const HomeScreen = () => {
                 {/* Upcoming */}
                 <Text style={styles.upcoming}>Upcoming Events</Text>
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {[1, 2, 3, 4, 5].map((item) => (
-                        <View key={item} style={styles.glassCard} />
-                    ))}
-                </ScrollView>
+                {loading ? (
+                    <ActivityIndicator size="small" color="#81ECFF" style={{ marginTop: 20 }} />
+                ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {events.length > 0 ? events.map((event) => (
+                            <View key={event._id || event.id} style={styles.glassCard}>
+                                {event.imageUrl ? (
+                                    <Image source={{ uri: event.imageUrl }} style={styles.glassImage} />
+                                ) : (
+                                    <View style={styles.glassImagePlaceholder}>
+                                        <Ionicons name="calendar" size={24} color="#81ECFF" />
+                                    </View>
+                                )}
+                                <Text style={styles.glassTitle} numberOfLines={1}>{event.title}</Text>
+                                <Text style={styles.glassDate} numberOfLines={1}>{event.date || 'TBA'}</Text>
+                            </View>
+                        )) : (
+                            <Text style={{ color: '#ACA8C3', marginTop: 10 }}>No upcoming events.</Text>
+                        )}
+                    </ScrollView>
+                )}
 
             </ScrollView>
         </AppBackgroundCommittee>
@@ -88,7 +123,7 @@ export default HomeScreen;
 const styles = StyleSheet.create({
     container: {
         padding: 10,
-        paddingBottom: 100,
+        paddingBottom: 150,
         marginTop: 30,
     },
 
@@ -245,13 +280,40 @@ const styles = StyleSheet.create({
 
     /* GLASS CARDS */
     glassCard: {
-        width: 120,
-        height: 150,
+        width: 140,
+        height: 160,
         borderRadius: 20,
         marginRight: 15,
         marginTop: 15,
         backgroundColor: 'rgba(255,255,255,0.08)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.15)',
+        overflow: 'hidden',
+        paddingBottom: 10,
+    },
+    glassImage: {
+        width: '100%',
+        height: 90,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    glassImagePlaceholder: {
+        width: '100%',
+        height: 90,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    glassTitle: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginTop: 10,
+        paddingHorizontal: 10,
+    },
+    glassDate: {
+        color: '#81ECFF',
+        fontSize: 10,
+        marginTop: 4,
+        paddingHorizontal: 10,
     },
 });

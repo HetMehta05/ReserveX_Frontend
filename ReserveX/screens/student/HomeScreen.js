@@ -62,8 +62,18 @@ export default function HomeScreen() {
             const { date, startTime, endTime } = getCurrentDateTime();
 
             const rooms = await getAvailableRooms(date, startTime, endTime);
+            
+            const uniqueRooms = Array.from(
+                new Map((rooms || []).map(r => {
+                    // Extract safe string key to merge duplicates regardless of ID
+                    const key = (r.name && typeof r.name === 'string') 
+                        ? r.name.trim().toLowerCase() 
+                        : (r._id || r.id || JSON.stringify(r));
+                    return [key, r];
+                })).values()
+            );
 
-            setAvailableRooms(rooms || []);
+            setAvailableRooms(uniqueRooms);
         } catch (err) {
             Toast.show({
                 type: "error",
@@ -330,9 +340,9 @@ export default function HomeScreen() {
 
                 <View style={styles.pillContainer}>
                     {availableRooms.length > 0 ? (
-                        availableRooms.map((room) => (
+                        availableRooms.map((room, index) => (
                             <LinearGradient
-                                key={room.id}
+                                key={room._id || room.id || `room-${index}`}
                                 colors={["#1A103D", "rgba(255,255,255,0.08)"]}
                                 style={styles.pill}
                             >
