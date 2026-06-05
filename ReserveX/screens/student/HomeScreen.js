@@ -63,7 +63,7 @@ export default function HomeScreen() {
 
             const rooms = await getAvailableRooms(date, startTime, endTime);
 
-            setAvailableRooms(rooms || []);
+            setAvailableRooms(uniqueRooms(rooms) || []);
         } catch (err) {
             Toast.show({
                 type: "error",
@@ -159,6 +159,19 @@ export default function HomeScreen() {
         setRefreshing(true);
         await loadTimetable();
         setRefreshing(false);
+    };
+
+    const uniqueRooms = (rooms = []) => {
+        const seen = new Set();
+
+        return rooms.filter(room => {
+            const key = room.name?.trim().toLowerCase();
+
+            if (seen.has(key)) return false;
+
+            seen.add(key);
+            return true;
+        });
     };
 
     return (
@@ -325,32 +338,45 @@ export default function HomeScreen() {
                     </LinearGradient>
                 )}
 
-                {/* UNOCCUPIED */}
+
+                {/* UNOCCUPIED CLASSROOMS */}
                 <Text style={styles.sectionTitle}>Unoccupied Classrooms</Text>
 
-                <View style={styles.pillContainer}>
-                    {availableRooms.length > 0 ? (
-                        availableRooms.map((room) => (
-                            <LinearGradient
-                                key={room.id}
-                                colors={["#1A103D", "rgba(255,255,255,0.08)"]}
-                                style={styles.pill}
-                            >
-                                <Text style={styles.pillText}>
-                                    {room.name}
-                                </Text>
-                            </LinearGradient>
-                        ))
-                    ) : (
-                        <View style={styles.noRoomsBox}>
-                            <Ionicons name="business-outline" size={22} color="#A0A3BD" />
+                <View style={styles.roomBlock}>
 
-                            <Text style={styles.noRoomsText}>
+                    {/* HEADER INSIDE BLOCK */}
+                    <View style={styles.roomBlockHeader}>
+                        <Ionicons name="business-outline" size={18} color="#81ECFF" />
+                        <Text style={styles.roomBlockTitle}>
+                            Available Now
+                        </Text>
+                        <View style={styles.roomCountPill}>
+                            <Text style={styles.roomCountText}>
+                                {availableRooms.length}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* CONTENT */}
+                    {availableRooms.length > 0 ? (
+                        <View style={styles.roomGrid}>
+                            {availableRooms.map((room) => (
+                                <View key={room.id} style={styles.roomChip}>
+
+                                    <Text style={styles.roomChipText}>
+                                        {room.name}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    ) : (
+                        <View style={styles.roomEmptyState}>
+                            <Ionicons name="alert-circle-outline" size={22} color="#A0A3BD" />
+                            <Text style={styles.roomEmptyText}>
                                 No classrooms available right now
                             </Text>
-
-                            <Text style={styles.noRoomsSubText}>
-                                All rooms are currently occupied. Try again later.
+                            <Text style={styles.roomEmptySubText}>
+                                All rooms are currently occupied
                             </Text>
                         </View>
                     )}
@@ -631,6 +657,84 @@ const styles = StyleSheet.create({
     emptySubtitle: {
         color: "#A0A3BD",
         fontSize: 12,
+        textAlign: "center",
+    },
+
+    roomBlock: {
+        backgroundColor: "rgba(255,255,255,0.04)",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.08)",
+        borderRadius: 18,
+        padding: 14,
+        marginBottom: 20,
+    },
+
+    roomBlockHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+
+    roomBlockTitle: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
+        marginLeft: 8,
+        flex: 1,
+    },
+
+    roomCountPill: {
+        backgroundColor: "rgba(129,236,255,0.15)",
+        paddingHorizontal: 10,
+        paddingVertical: 3,
+        borderRadius: 12,
+    },
+
+    roomCountText: {
+        color: "#81ECFF",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+
+    roomGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+    },
+
+    roomChip: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(129,236,255,0.08)",
+        borderWidth: 1,
+        borderColor: "rgba(129,236,255,0.15)",
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        borderRadius: 14,
+        gap: 6,
+    },
+
+    roomChipText: {
+        color: "#fff",
+        fontSize: 12,
+    },
+
+    roomEmptyState: {
+        alignItems: "center",
+        paddingVertical: 10,
+    },
+
+    roomEmptyText: {
+        color: "#A0A3BD",
+        fontSize: 13,
+        marginTop: 6,
+        textAlign: "center",
+    },
+
+    roomEmptySubText: {
+        color: "#6B6F85",
+        fontSize: 11,
+        marginTop: 2,
         textAlign: "center",
     },
 });
