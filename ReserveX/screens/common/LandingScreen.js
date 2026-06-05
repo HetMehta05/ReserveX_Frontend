@@ -19,8 +19,7 @@ const LandingContent = ({ navigation }) => {
                 {/* Logo */}
                 <Logo width={200} height={90} style={styles.logo} />
 
-                {/* Title */}
-                <Text style={styles.tagline}>TAGLINE</Text>
+
 
                 {/* Buttons */}
                 <View style={styles.buttonContainer}>

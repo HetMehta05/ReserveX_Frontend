@@ -26,16 +26,19 @@ const ProfileScreen = () => {
 
     useEffect(() => {
         fetchProfile();
-    }, [user]);
+    }, []);
 
     const fetchProfile = async () => {
         try {
             setLoading(true);
-            const userId = user?._id || user?.id || user;
+            const userId = user?.id;
+
             if (!userId) {
+                console.log("❌ userId missing - stopping API call");
                 setLoading(false);
                 return;
             }
+
             const data = await getUserProfile(userId);
             setProfile(data);
             await setUser({
@@ -228,25 +231,38 @@ const ProfileScreen = () => {
                             <TouchableOpacity
                                 style={styles.committeeButton}
                                 activeOpacity={0.8}
-                                onPress={() => {
+                                onPress={async () => {
+                                    try {
+                                        const userId = user?.id;
 
-                                    Alert.alert(
-                                        "Committee Portal",
-                                        "Switch to committee mode?",
-                                        [
-                                            {
-                                                text: "Cancel",
-                                                style: "cancel",
-                                            },
-                                            {
-                                                text: "Continue",
-                                                onPress: () => {
-                                                    setCommitteeMode(true);
+                                        const data = await getUserProfile(userId);
+
+                                        const status = data.committeeStatus;
+
+                                        if (!status || status === "NOT IN ANY CLUB") {
+                                            Alert.alert(
+                                                "Access Denied",
+                                                "You are not part of any committee"
+                                            );
+                                            return;
+                                        }
+
+                                        Alert.alert(
+                                            "Committee Portal",
+                                            `Role: ${status}`,
+                                            [
+                                                { text: "Cancel", style: "cancel" },
+                                                {
+                                                    text: "Continue",
+                                                    onPress: () => setCommitteeMode(true),
                                                 },
-                                            },
-                                        ]
-                                    );
+                                            ]
+                                        );
 
+                                    } catch (err) {
+                                        console.log("Committee check error:", err);
+                                        Alert.alert("Error", "Failed to verify committee access");
+                                    }
                                 }}
                             >
                                 <View style={styles.actionLeft}>

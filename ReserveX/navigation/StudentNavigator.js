@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 5, // lifts the icon slightly
+        marginBottom: 2,
+        marginTop: 10 // lifts the icon slightly
     },
 });
